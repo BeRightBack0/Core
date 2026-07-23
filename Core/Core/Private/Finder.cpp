@@ -10260,7 +10260,12 @@ uintptr_t Finder::FindUFortGameInstance_ServerTravel() {
 		return ServerOffsets::UFortGameInstance_ServerTravel;
 	uintptr_t Addr = 0;
 	
-	Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? ? ? ? 41 0F B6 D9").Get();
+	if (Version::Fortnite_Version < 6) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? ? ? ? 41 0F B6 D9").Get();
+	}
+	else if (Version::Fortnite_Version >= 6.00) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 41 0F B6 D9 41 0F B6 F8").Get();
+	}
 	
 	if (Addr) {
 		ServerOffsets::UFortGameInstance_ServerTravel = Addr - ImageBase;
