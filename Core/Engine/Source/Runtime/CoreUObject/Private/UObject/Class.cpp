@@ -173,7 +173,7 @@ UFunction* UClass::GetFunction(const std::string& FullName, bool bSilent) const
 	UObject* Function = FUObjectArray::FindObject(FullName);
 	if (!Function) {
 		if (!bSilent) {
-			Log("Failed to find function with full name: " + FullName);
+			//Log("Failed to find function with full name: " + FullName);
 		}
 		return nullptr;
 	}

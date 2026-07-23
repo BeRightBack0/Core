@@ -279,12 +279,6 @@ public:
 
 		UFunction* ServerAttemptInteractFunc = AFortPlayerController::StaticClass()->GetFunction("Function /Script/FortniteGame.FortPlayerController.ServerAttemptInteract");
 		if (ServerAttemptInteractFunc) {
-			/*HookEveryVTable(
-				AFortPlayerController::StaticClass(),
-				ServerAttemptInteractFunc,
-				ServerAttemptInteract,
-				(LPVOID*)&ServerAttemptInteractOG
-			);*/
 			ExecHook(ServerAttemptInteractFunc, execServerAttemptInteract, execServerAttemptInteractOG);
 		}
 
