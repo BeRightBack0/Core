@@ -6441,6 +6441,9 @@ uintptr_t Finder::FindUNetDriver_IsAdaptiveNetUpdateFrequencyEnabled() {
 	if (!Addr) {
 		Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC ? 80 3D ? ? ? ? 00 48 8B 1D ? ? ? ? 74 ? FF 15 ? ? ? ? 3B 05 ? ? ? ? 0F 94 C0 EB ? B0 ? 0F B6 C0 48 83 F0 ? ? ? ? 00 0F 9F C0").Get();
 	}
+	if (!Addr) {
+		Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC ? 80 3D ? ? ? ? 00 48 8B 1D ? ? ? ? 74 ? FF 15 ? ? ? ? 33 C9 3B 05 ? ? ? ? 0F 95 C1 ? ? ? 00 0F 9F").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::UNetDriver_IsAdaptiveNetUpdateFrequencyEnabled = Addr - ImageBase;
