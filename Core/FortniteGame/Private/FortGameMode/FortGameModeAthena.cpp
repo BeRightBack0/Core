@@ -145,14 +145,6 @@ bool AFortGameModeAthena::SetupPlaylist() {
 		}
 	}
 
-	if (Playlist) {
-		Playlist->LoadAdditionalLevels();
-		Playlist->LoadAdditionalLevelsServerOnly();
-		FortGameState->OnRep_AdditionalPlaylistLevelsStreamed();
-	}
-
-	ABuildingFoundation::SetupFoundations();
-
 	Log("AFortGameModeAthena::SetupPlaylist: Applied playlist " + (Playlist ? Playlist->GetFName().ToString().ToString() : std::to_string(CurrentPlaylistId)));
 
 	// Start Playlist Dump
@@ -194,12 +186,23 @@ bool AFortGameModeAthena::SetupPlaylist() {
 
 void AFortGameModeAthena::FinishWorldInitialization(AFortGameModeAthena* This, AFortWorldManager* WorldManager) {
 	FinishWorldInitializationOG(This, WorldManager);
+
+	ABuildingFoundation::SetupFoundations();
+	UGameplayStatics::FlushLevelStreaming(UWorld::GetWorld());
+
 	AFortGameModeZone::FinishWorldInitialization(This, WorldManager);
 
 	AFortGameStateAthena* GameState = This->GameState->Cast<AFortGameStateAthena>();
 	if (!GameState) {
 		Log("AFortGameModeAthena::FinishWorldInitialization: GameState is null or not AFortGameStateAthena");
 		return;
+	}
+
+	UFortPlaylistAthena* Playlist = GameState->GetPlaylist();
+	if (Playlist) {
+		Playlist->LoadAdditionalLevels();
+		Playlist->LoadAdditionalLevelsServerOnly();
+		GameState->OnRep_AdditionalPlaylistLevelsStreamed();
 	}
 
 	This->DefaultPawnClass = (UClass*)StaticLoadObject("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");

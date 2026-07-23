@@ -15,6 +15,17 @@ void ABuildingFoundation::OnRep_ServerStreamedInLevel()
 	Call(Func);
 }
 
+bool ABuildingFoundation::SelectAndSetupMyBuildingLevel(void* ReservedRandomValues)
+{
+	uintptr_t Addr = Finder::FindABuildingFoundation_SelectAndSetupMyBuildingLevel();
+	if (!Addr) {
+		return false;
+	}
+
+	bool (*SelectAndSetupMyBuildingLevelInternal)(ABuildingFoundation*, void*) = decltype(SelectAndSetupMyBuildingLevelInternal)(ImageBase + Addr);
+	return SelectAndSetupMyBuildingLevelInternal(this, ReservedRandomValues);
+}
+
 void ABuildingFoundation::SetDynamicFoundationEnabled(bool bEnabled)
 {
 	static UFunction* Func = nullptr;
@@ -38,6 +49,12 @@ void ABuildingFoundation::Show()
 
 	bServerStreamedInLevel = true;
 	OnRep_ServerStreamedInLevel();
+
+	if (LevelToStream != "None") {
+		return;
+	}
+
+	SelectAndSetupMyBuildingLevel();
 }
 
 void ABuildingFoundation::SetupFoundations()
@@ -66,6 +83,70 @@ void ABuildingFoundation::SetupFoundations()
 		}
 
 		Foundation->Show();
+
 		Log("Enabled foundation " + Foundation->GetName().ToString());
+	}
+
+	SetupIslandScripting();
+}
+
+void ABuildingFoundation::DumpFoundations()
+{
+	for (UObject* Object : FUObjectArray::FindObjects("LF_"))
+	{
+		ABuildingFoundation* Foundation = ::Cast<ABuildingFoundation>(Object);
+		if (!Foundation) {
+			continue;
+		}
+
+		std::string Worlds;
+		if (Foundation->_HasAdditionalWorlds()) {
+			for (auto& World : Foundation->AdditionalWorlds) {
+				std::string Path = World.ObjectID.AssetPathName.ToString().ToString();
+				if (Path != "None") {
+					Worlds += " " + Path;
+				}
+			}
+		}
+
+		Log("Foundation " + Object->GetName().ToString()
+			+ " LevelToStream=" + (Foundation->_HasLevelToStream() ? Foundation->LevelToStream.ToString().ToString() : "<none>")
+			+ " AdditionalWorlds=" + (Worlds.empty() ? "<none>" : Worlds));
+	}
+}
+
+void ABuildingFoundation::SetupIslandScripting()
+{
+	UClass* IslandScriptingClass = (UClass*)FUObjectArray::FindObjectFast("BP_IslandScripting_C");
+	if (!IslandScriptingClass) {
+		return;
+	}
+
+	UProperty* UpdateMap = IslandScriptingClass->FindPropertyByName("UpdateMap");
+	UProperty* CachedTimeProp = IslandScriptingClass->FindPropertyByName("CachedTime");
+	UProperty* IslandPositionProp = IslandScriptingClass->FindPropertyByName("IslandPosition");
+
+	for (UObject* IslandScripting : FUObjectArray::GetObjectsOfClass(IslandScriptingClass))
+	{
+		if (!IslandScripting || IslandScripting == IslandScriptingClass->GetDefaultObject()) {
+			continue;
+		}
+
+		if (UpdateMap) {
+			*(bool*)((uintptr_t)IslandScripting + UpdateMap->Offset_Internal) = true;
+
+			if (UFunction* OnRep = IslandScripting->FindFunction("OnRep_UpdateMap")) {
+				IslandScripting->Call(OnRep);
+			}
+		}
+		else if (CachedTimeProp) {
+			if (UFunction* OnRep = IslandScripting->FindFunction("OnRep_CachedTime")) {
+				IslandScripting->Call(OnRep);
+			}
+
+			if (UFunction* OnRep = IslandScripting->FindFunction("OnRep_IslandPosition")) {
+				IslandScripting->Call(OnRep);
+			}
+		}
 	}
 }

@@ -100,6 +100,27 @@ UObject* UGameplayStatics::SpawnObject(TSubclassOf<UObject> ObjectClass, UObject
 	return NewObject<UObject>(Outer, Class);
 }
 
+void UGameplayStatics::FlushLevelStreaming(const UObject* WorldContextObject)
+{
+	static UFunction* Func = nullptr;
+	static bool bSearched = false;
+
+	if (!bSearched) {
+		bSearched = true;
+		Func = GetDefaultObj()->FindFunction("FlushLevelStreaming");
+
+		if (!Func) {
+			Log("UGameplayStatics::FlushLevelStreaming: function not found");
+		}
+	}
+
+	if (!Func) {
+		return;
+	}
+
+	GetDefaultObj()->Call(Func, WorldContextObject);
+}
+
 float UGameplayStatics::GetTimeSeconds(const UObject* WorldContextObject)
 {
 	UWorld* World = GetWorldFromContext(WorldContextObject);

@@ -33,6 +33,8 @@ public:
 
 	void BounceContainer();
 
+	bool Setup();
+
 	static inline void (*PostUpdateOG)(ABuildingContainer* This, uint8 PersistantState, void* ReservedRandomValues);
 	static void PostUpdate(ABuildingContainer* This, uint8 PersistantState, void* ReservedRandomValues);
 

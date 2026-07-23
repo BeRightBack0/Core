@@ -116,14 +116,11 @@ void ABuildingContainer::BounceContainer()
 	Call(Func);
 }
 
-void ABuildingContainer::PostUpdate(ABuildingContainer* This, uint8 PersistantState, void* ReservedRandomValues)
-{
-	PostUpdateOG(This, PersistantState, ReservedRandomValues);
-
+bool ABuildingContainer::Setup() {
 	UWorld* World = UWorld::GetWorld();
 	if (!World) {
 		Log("ABuildingContainer::PostUpdate: World is null!");
-		return;
+		return false;
 	}
 
 	AFortGameModeAthena* FortGameModeAthena = World->AuthorityGameMode->Cast<AFortGameModeAthena>();
@@ -142,9 +139,9 @@ void ABuildingContainer::PostUpdate(ABuildingContainer* This, uint8 PersistantSt
 					int32 OldTierGroup = Pair.Key();
 					int32 RedirectedTierGroup = Pair.Value();
 
-					if (OldTierGroup == This->SearchLootTierGroup.ComparisonIndex)
+					if (OldTierGroup == SearchLootTierGroup.ComparisonIndex)
 					{
-						This->SearchLootTierGroup.ComparisonIndex = RedirectedTierGroup;
+						SearchLootTierGroup.ComparisonIndex = RedirectedTierGroup;
 						break;
 					}
 				}
@@ -159,9 +156,9 @@ void ABuildingContainer::PostUpdate(ABuildingContainer* This, uint8 PersistantSt
 					FName OldTierGroup = Pair.Key();
 					FName RedirectedTierGroup = Pair.Value();
 
-					if (OldTierGroup == This->SearchLootTierGroup)
+					if (OldTierGroup == SearchLootTierGroup)
 					{
-						This->SearchLootTierGroup = RedirectedTierGroup;
+						SearchLootTierGroup = RedirectedTierGroup;
 						break;
 					}
 				}
@@ -175,34 +172,39 @@ void ABuildingContainer::PostUpdate(ABuildingContainer* This, uint8 PersistantSt
 			static FName Loot_AthenaFloorLoot = UKismetStringLibrary::Conv_StringToName("Loot_AthenaFloorLoot");
 			static FName Loot_AthenaFloorLoot_Warmup = UKismetStringLibrary::Conv_StringToName("Loot_AthenaFloorLoot_Warmup");
 
-			if (This->SearchLootTierGroup == Loot_Treasure) {
-				This->SearchLootTierGroup = Loot_AthenaTreasure;
-				This->bDestroyContainerOnSearch = false;
+			if (SearchLootTierGroup == Loot_Treasure) {
+				SearchLootTierGroup = Loot_AthenaTreasure;
+				bDestroyContainerOnSearch = false;
 			}
-			else if (This->SearchLootTierGroup == Loot_Ammo) {
-				This->SearchLootTierGroup = Loot_AthenaAmmoLarge;
-				This->bDestroyContainerOnSearch = false;
+			else if (SearchLootTierGroup == Loot_Ammo) {
+				SearchLootTierGroup = Loot_AthenaAmmoLarge;
+				bDestroyContainerOnSearch = false;
 			}
-			else if (This->SearchLootTierGroup == Loot_AthenaFloorLoot) {
-				This->bDestroyContainerOnSearch = false;
+			else if (SearchLootTierGroup == Loot_AthenaFloorLoot) {
+				bDestroyContainerOnSearch = false;
 			}
-			else if (This->SearchLootTierGroup == Loot_AthenaFloorLoot_Warmup) {
-				This->bDestroyContainerOnSearch = false;
+			else if (SearchLootTierGroup == Loot_AthenaFloorLoot_Warmup) {
+				bDestroyContainerOnSearch = false;
 			}
 			else {
 				if (Version::Fortnite_Version <= 2.5) {
-					This->SearchedMesh = nullptr;
-					This->bAllowInteract = false;
-					This->bAlreadySearched = true;
-					This->OnRep_bAlreadySearched();
+					SearchedMesh = nullptr;
+					bAllowInteract = false;
+					bAlreadySearched = true;
+					OnRep_bAlreadySearched();
 				}
 			}
 		}
 	}
 
-	if (This->bStartAlreadySearched_Athena) {
-		SpawnLoot(This, nullptr, EFortPickupSourceTypeFlag::GetContainer(), EFortPickupSpawnSource::GetUnset());
+	if (bStartAlreadySearched_Athena) {
+		SpawnLoot(this, nullptr, EFortPickupSourceTypeFlag::GetContainer(), EFortPickupSpawnSource::GetUnset());
 	}
+}
+
+void ABuildingContainer::PostUpdate(ABuildingContainer* This, uint8 PersistantState, void* ReservedRandomValues)
+{
+	PostUpdateOG(This, PersistantState, ReservedRandomValues);
 }
 
 void ABuildingContainer::OnSetSearched()

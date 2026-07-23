@@ -5412,6 +5412,29 @@ uintptr_t Finder::FindULevelStreamingDynamic_LoadLevelInstanceBySoftObjectPtr() 
 	return ServerOffsets::ULevelStreamingDynamic_LoadLevelInstanceBySoftObjectPtr;
 }
 
+uintptr_t Finder::FindABuildingFoundation_SelectAndSetupMyBuildingLevel() {
+	static uintptr_t Addr = 0;
+	if (ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel)
+		return ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel;
+	static bool bInitialized = false;
+	if (bInitialized) {
+		return ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel;
+	}
+
+	auto Ref = Memcury::Scanner::FindStringRef(L"ABuildingFoundation::SelectAndSetupMyBuildingLevel - Cannot get WorldManager!!", false);
+	if (Ref.IsValid()) {
+		Addr = Ref.FindFunctionStart().Get();
+	}
+
+	if (Addr) {
+		ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel = Addr - ImageBase;
+	}
+
+	bInitialized = true;
+	Log("ABuildingFoundation_SelectAndSetupMyBuildingLevel found at: 0x" + std::format("{:X}", ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel));
+	return ServerOffsets::ABuildingFoundation_SelectAndSetupMyBuildingLevel;
+}
+
 uintptr_t Finder::FindAFortGameStateAthena_OnPlaylistDataLoadCompleted() {
 	static uintptr_t Addr = 0;
 	if (ServerOffsets::AFortGameStateAthena_OnPlaylistDataLoadCompleted)

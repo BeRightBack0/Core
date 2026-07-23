@@ -621,6 +621,8 @@ public:
 
 	static uintptr_t FindULevelStreamingDynamic_LoadLevelInstanceBySoftObjectPtr();
 
+	static uintptr_t FindABuildingFoundation_SelectAndSetupMyBuildingLevel();
+
 	static uintptr_t FindAFortGameStateAthena_OnPlaylistDataLoadCompleted();
 
 	static uintptr_t FindAFortGameStateAthena_UpdatePlaylistDependentData();

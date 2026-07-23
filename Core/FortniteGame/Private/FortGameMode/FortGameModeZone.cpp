@@ -18,6 +18,7 @@
 #include "FortniteGame/Public/FortAbility/FortAbilitySystemComponent.h"
 #include "FortniteGame/Public/BuildingActor/BuildingItemCollectorActor.h"
 #include "FortniteGame/Public/BuildingActor/BGAConsumableSpawner.h"
+#include "FortniteGame/Public/BuildingActor/BuildingContainer.h"
 
 void AFortGameModeZone::HandleStartingNewPlayer(AFortGameModeZone* This, AFortPlayerControllerZone* NewPlayer) {
 	Log("HandleStartingNewPlayer Called!");
@@ -118,6 +119,17 @@ void AFortGameModeZone::FinishWorldInitialization(AFortGameModeZone* This, AFort
 		if (BGAConsumeableSpawner) {
 			if (!BGAConsumeableSpawner->AttemptSpawn()) {
 				//Log("AFortGameModeZone::FinishWorldInitialization: Failed to spawn BGAConsumable: " + BGAConsumeableSpawner->GetName().ToString());
+			}
+		}
+	}
+
+	TArray<AActor*> BuildingContainers;
+	UGameplayStatics::GetAllActorsOfClass(World, ABuildingContainer::StaticClass(), &BuildingContainers);
+	for (AActor* BuildingContainerActor : BuildingContainers) {
+		ABuildingContainer* BuildingContainer = BuildingContainerActor->Cast<ABuildingContainer>();
+		if (BuildingContainer) {
+			if (!BuildingContainer->Setup()) {
+				//Log("AFortGameModeZone::FinishWorldInitialization: Failed to setup BuildingContainer: " + BuildingContainer->GetName().ToString());
 			}
 		}
 	}

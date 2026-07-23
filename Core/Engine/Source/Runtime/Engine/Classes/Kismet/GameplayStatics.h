@@ -42,6 +42,8 @@ public:
 
 	static void GetAllActorsOfClass(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, TArray<AActor*>* OutActors);
 
+	static void FlushLevelStreaming(const UObject* WorldContextObject);
+
 	static void GetAllActorsWithTag(const UObject* WorldContextObject, FName Tag, TArray<AActor*>* OutActors);
 
 	static APlayerController* GetPlayerController(const UObject* WorldContextObject, int32 PlayerIndex);
