@@ -131,6 +131,13 @@ LONG WINAPI CoreUnhandledExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 
     CONTEXT ctx = *ExceptionInfo->ContextRecord;
 
+    if (!ctx.Rip && ctx.Rsp)
+    {
+        reportStream << "0x0000000000000000: [null function pointer call, caller follows]\n";
+        ctx.Rip = *reinterpret_cast<DWORD64*>(ctx.Rsp);
+        ctx.Rsp += 8;
+    }
+
     for (int frame = 0; frame < 64 && ctx.Rip; frame++)
     {
         DWORD64 pc = ctx.Rip;

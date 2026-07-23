@@ -38,6 +38,8 @@ public:
 	DefineStructProperty(TArray<FFortItemEntry>, OutputItemEntry);
 	DefineStructProperty(FName, OverrideOutputItemLootTierGroupName);
 	DefineStructProperty(UTexture*, OverrideOutputItemTexture);
+public:
+	uint8 Padding[0x110];
 };
 
 class ABuildingItemCollectorActor : public ABuildingGameplayActor {
