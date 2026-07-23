@@ -360,7 +360,7 @@ int32 UNetDriver::ServerReplicateActors(float DeltaSeconds)
 
 	int32 Updated = 0;
 
-	if (Version::Engine_Version >= 4.16 && Version::Engine_Version <= 4.20) {
+	if (Version::Engine_Version >= 4.16 && Version::Engine_Version <= 4.21) {
 		const int32 NumClientsToTick = ServerReplicateActors_PrepConnections(DeltaSeconds);
 
 		if (NumClientsToTick == 0)
@@ -717,7 +717,7 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 		return 0;
 	}
 
-	if (Version::Engine_Version >= 4.16 && Version::Engine_Version <= 4.20) {
+	if (Version::Engine_Version >= 4.16 && Version::Engine_Version <= 4.21) {
 		NetTag++;
 		Connection->TickCount++;
 
