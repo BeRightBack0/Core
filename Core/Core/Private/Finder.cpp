@@ -5839,10 +5839,15 @@ uintptr_t Finder::FindAFortPickup_GivePickupToVFT() {
 	if (BaseAddr) {
 		BaseAddr += ImageBase;
 
-		for (int i = 0; i < 512; i++)
+		for (int i = 0; i < 2048; i++)
 		{
 			auto Ptr = (uint8_t*)(BaseAddr + i);
 			if (*Ptr == 0x49 && *(Ptr + 1) == 0xFF) {
+				int32_t Offset = *reinterpret_cast<int32_t*>(Ptr + 3);
+				Addr = static_cast<uintptr_t>(Offset) / 8;
+				break;
+			}
+			else if (*Ptr == 0x48 && *(Ptr + 1) == 0xFF && *(Ptr + 2) == 0xA0) {
 				int32_t Offset = *reinterpret_cast<int32_t*>(Ptr + 3);
 				Addr = static_cast<uintptr_t>(Offset) / 8;
 				break;
@@ -6125,18 +6130,25 @@ uintptr_t Finder::FindAFortInventory_InitializeExistingItem() {
 	if (ServerOffsets::AFortInventory_InitializeExistingItem)
 		return ServerOffsets::AFortInventory_InitializeExistingItem;
 
-	uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"Failed to find ItemDefinition for WorldItem with Template %s!").Get();
-	if (StringAddr)
-	{
-		for (int i = 0; i < 512; i++)
+	if (Version::Fortnite_Version <= 5.30) {
+		uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"Failed to find ItemDefinition for WorldItem with Template %s!").Get();
+		if (StringAddr)
 		{
-			auto Ptr = (uint8_t*)(StringAddr - i);
-			if (*Ptr == 0xE8) {
-				int32_t Rel = *reinterpret_cast<int32_t*>(Ptr + 1);
-				uintptr_t Target = reinterpret_cast<uintptr_t>(Ptr) + 5 + Rel;
-				Addr = Target;
-				break;
+			for (int i = 0; i < 512; i++)
+			{
+				auto Ptr = (uint8_t*)(StringAddr - i);
+				if (*Ptr == 0xE8) {
+					int32_t Rel = *reinterpret_cast<int32_t*>(Ptr + 1);
+					uintptr_t Target = reinterpret_cast<uintptr_t>(Ptr) + 5 + Rel;
+					Addr = Target;
+					break;
+				}
 			}
+		}
+	}
+	else {
+		if (Version::Engine_Version == 4.21) {
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 80 B9 ? ? ? ? 00 48 8B FA 48 8B D9 0F 84 ? ? ? ? ? ? ? 48 8B CF").Get();
 		}
 	}
 
