@@ -59,7 +59,7 @@ void ABuildingFoundation::SetupFoundations()
 
 	for (const char* Path : FoundationPaths)
 	{
-		ABuildingFoundation* Foundation = (ABuildingFoundation*)FUObjectArray::FindObject(Path);
+		ABuildingFoundation* Foundation = StaticLoadObject<ABuildingFoundation>(Path);
 		if (!Foundation) {
 			Log("ABuildingFoundation::SetupFoundations: not found " + std::string(Path));
 			continue;
