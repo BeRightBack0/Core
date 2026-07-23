@@ -175,6 +175,9 @@ bool AFortGameModeAthena::SetupPlaylist() {
 	if (FortGameState->_HasAirCraftBehavior()) {
 		Log("AirCraftBehavior: " + std::to_string(FortGameState->AirCraftBehavior));
 	}
+	if (Playlist->_HasRespawnType()) {
+		Log("RespawnType: " + std::to_string(Playlist->RespawnType));
+	}
 	Log("====== End Playlist Dump ======");
 
 	return true;
