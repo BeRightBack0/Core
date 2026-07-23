@@ -11,5 +11,11 @@ public:
 			MH_CreateHook(LPVOID(WidgetCrashPatch), RetNullptr, 0);
 			Log("Patched: " + std::to_string(WidgetCrashPatch - ImageBase) + " with RetNullptr");
 		}
+
+		uintptr_t VivoxConnectPatch = Memcury::Scanner::FindStringRef(L"FVivox::Connect").FindFunctionStart().Get();
+		if (VivoxConnectPatch) {
+			MH_CreateHook(LPVOID(VivoxConnectPatch), RetNullptr, 0);
+			Log("Patched: " + std::to_string(VivoxConnectPatch - ImageBase) + " with RetNullptr");
+		}
 	}
 };
