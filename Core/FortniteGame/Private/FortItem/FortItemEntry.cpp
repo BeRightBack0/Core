@@ -23,7 +23,7 @@ void FFortItemEntry::SetStateValue(uint8 StateType, int32 InValue) {
 }
 
 void FFortItemEntry::RemoveStateValue(uint8 StateType) {
-	for (int32 i = 0; i < StateValues.Num(); i++) {
+	for (int32 i = StateValues.Num() - 1; i >= 0; i--) {
 		FFortItemEntryStateValue& StateValue = StateValues.GetWithSize(i, FFortItemEntryStateValue::GetSize());
 		if (StateValue.StateType == StateType) {
 			StateValues.RemoveAt(i, FFortItemEntryStateValue::GetSize());

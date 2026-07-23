@@ -99,15 +99,31 @@ public:
 
 	void ResizeTo(int32 NewMax, int32 Size = ElementSize)
 	{
-		if (NewMax != ArrayMax)
+		if (NewMax == ArrayMax)
 		{
-			ArrayMax = NewMax;
-			void* NewData = FMemory::Realloc(Data, ArrayMax * Size);
-			if (NewData)
-			{
-				Data = (ArrayElementType*)NewData;
-			}
+			return;
 		}
+
+		if (NewMax <= 0)
+		{
+			if (Data)
+			{
+				FMemory::Free(Data);
+			}
+
+			Data = nullptr;
+			ArrayMax = 0;
+			return;
+		}
+
+		void* NewData = FMemory::Realloc(Data, (size_t)NewMax * Size);
+		if (!NewData)
+		{
+			return;
+		}
+
+		Data = (ArrayElementType*)NewData;
+		ArrayMax = NewMax;
 	}
 
 	inline void GrowTo(int32 NewNum, int32 Size = ElementSize)

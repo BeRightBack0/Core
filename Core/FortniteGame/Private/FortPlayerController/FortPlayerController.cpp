@@ -2135,7 +2135,7 @@ void AFortPlayerController::ServerRemoveInventoryStateValue(AFortPlayerControlle
 	}
 
 	bool bModified = false;
-	for (int32 i = 0; i < ItemEntry->StateValues.Num(); i++) {
+	for (int32 i = ItemEntry->StateValues.Num() - 1; i >= 0; i--) {
 		FFortItemEntryStateValue& StateValue = ItemEntry->StateValues.GetWithSize(i, FFortItemEntryStateValue::GetSize());
 		if (StateValue.StateType == StateValueType) {
 			ItemEntry->StateValues.RemoveAt(i, FFortItemEntryStateValue::GetSize());
