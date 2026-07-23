@@ -6081,39 +6081,21 @@ uintptr_t Finder::FindAFortInventory_GetInventoryUsed() {
 	uintptr_t Addr = 0;
 
 	Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC ? 33 DB 8B EA 48 8B F1 8B FB 48 85 C9 74 ? ? ? ? FF 50 ? 4C 8B F0 E8 ? ? ? ? 49 8B 4E ? 48 05 ? ? ? ? 48 63 50 ? 3B 91 ? ? ? ? 7F ? 48 8B 89 ? ? ? ? ? ? ? ? 49 0F 44 FE 85 ED 74").Get();
+	if (!Addr) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC ? 33 DB 8B EA 48 8B F1 8B FB 48 85 C9 74 ? ? ? ? FF 50 ? 4C 8B F0 E8 ? ? ? ? 49 8B 4E ? 48 05 ? ? ? ? 48 63 50 ? 3B 91 ? ? ? ? 7F ? 48 8B 89 ? ? ? ? ? ? ? ? 75 ? B0 ? EB ? 32 C0 84 C0 49 0F 45 FE 85 ED 0F 84 ? ? ? ? 83 FD ? 0F 85 ? ? ? ? 48 85 FF 0F 84 ? ? ? ? ? ? ? 48 8B CF FF 90 ? ? ? ? 48 8B CF 48 85 C0 74 ? ? ? ? FF 90 ? ? ? ? 48 8D 88 ? ? ? ? ? ? ? FF 50 ? 8B D8 E9 ? ? ? ? E8 ? ? ? ? 48 85 C0 0F 84 ? ? ? ? 48 8B CF 48 89 5C 24 ? 48 89 5C 24 ? E8 ? ? ? ? 48 8B C8 48 8D 54 24 ? E8 ? ? ? ? 8B 5C 24").Get();
+	}
 
 	if (!Addr) {
 		UObject* GetBackpackItemCounts = FUObjectArray::FindObject("Function /Script/FortniteUI.FortInventoryContext.GetBackpackItemCounts");
 		if (GetBackpackItemCounts) {
 			uintptr_t execGetBackpackItemCounts_ADDR = (uintptr_t)((UFunction*)GetBackpackItemCounts)->Func;
-			uintptr_t GetBackpackItemCounts_Impl_ADDR = 0x0;
-
-			uintptr_t C3_Point = 0x0;
-
-			for (int i = 0; i < 1000; i++)
-			{
-				uintptr_t CurrentAddr = execGetBackpackItemCounts_ADDR + i;
-
-				if (*(uint8*)(CurrentAddr) == 0xC3)
-				{
-					C3_Point = CurrentAddr;
-					break;
-				}
-			}
-
-			for (int i = 0; C3_Point && i < 40; i++)
-			{
-				uintptr_t CurrentAddr2 = C3_Point - i;
-
-				if (*(uint8*)(CurrentAddr2) == 0xE8) {
-					GetBackpackItemCounts_Impl_ADDR = Utils::GetCallDestination(CurrentAddr2);
-					break;
-				}
-			}
+			uintptr_t GetBackpackItemCounts_Impl_ADDR = Utils::GetCallDestination(
+				Memcury::Scanner(execGetBackpackItemCounts_ADDR).FindFunctionEnd().ScanFor({ 0xE8 }, false).Get()
+			);
 
 			uint8 Skipped = 0x0;
 
-			for (int i = 0; GetBackpackItemCounts_Impl_ADDR && i < 0x100; i++)
+			for (int i = 0; GetBackpackItemCounts_Impl_ADDR && i < 0x200; i++)
 			{
 				uintptr_t CurrentAddress3 = GetBackpackItemCounts_Impl_ADDR + i;
 
@@ -8637,18 +8619,15 @@ uintptr_t Finder::FindABuildingSMActor_PostUpdate()
 {
 	if (ServerOffsets::ABuildingSMActor_PostUpdate)
 		return ServerOffsets::ABuildingSMActor_PostUpdate;
+	uintptr_t Addr = 0;
 
-	uintptr_t stringaddr = Memcury::Scanner::FindStringRef(L"ABuildingSMActor::PostUpdate() Building: %s, AltMeshIdx: %d").Get();
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"ABuildingSMActor::PostUpdate() Building: %s, AltMeshIdx: %d", false, 1);
+	if (StringAddr.IsValid()) {
+		Addr = StringAddr.FindFunctionStart().Get();
+	}
 
-	for (int i = 0; i < 200; i++)
-	{
-		uintptr_t CurrentAddr = stringaddr - i;
-
-		if (*(uint8*)(CurrentAddr) == 0x40 && *(uint8*)(CurrentAddr + 1) == 0x53)
-		{
-			ServerOffsets::ABuildingSMActor_PostUpdate = CurrentAddr - ImageBase;
-			break;
-		}
+	if (Addr) {
+		ServerOffsets::ABuildingSMActor_PostUpdate = Addr - ImageBase;
 	}
 
 	Log("ABuildingSMActor_PostUpdate found at: 0x" + std::format("{:X}", ServerOffsets::ABuildingSMActor_PostUpdate));

@@ -171,12 +171,12 @@ void AFortPlayerPawn::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComp,
 		TryToAutoPickup(OtherActor);
 	}
 
-	if (OtherActor) {
+	/*if (OtherActor) {
 		Log("OnCapsuleBeginOverlap: Overlapped with: " + OtherActor->GetName().ToString());
 	}
 	else {
 		Log("OnCapsuleBeginOverlap: Overlapped with null actor!");
-	}
+	}*/
 }
 
 void AFortPlayerPawn::TryToAutoPickup(AFortPickup* Pickup) {
