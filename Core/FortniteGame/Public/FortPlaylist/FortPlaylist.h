@@ -39,4 +39,7 @@ public:
 	UDataTable* GetLootPackages();
 
 	UCurveTable* GetGameData();
+
+	void LoadAdditionalLevels();
+	void LoadAdditionalLevelsServerOnly();
 };

@@ -144,6 +144,12 @@ bool AFortGameModeAthena::SetupPlaylist() {
 		}
 	}
 
+	if (Playlist) {
+		Playlist->LoadAdditionalLevels();
+		Playlist->LoadAdditionalLevelsServerOnly();
+		FortGameState->OnRep_AdditionalPlaylistLevelsStreamed();
+	}
+
 	Log("AFortGameModeAthena::SetupPlaylist: Applied playlist " + (Playlist ? Playlist->GetFName().ToString().ToString() : std::to_string(CurrentPlaylistId)));
 
 	// Start Playlist Dump

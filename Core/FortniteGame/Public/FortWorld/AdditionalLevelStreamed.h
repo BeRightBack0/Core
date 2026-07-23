@@ -8,7 +8,6 @@ struct FAdditionalLevelStreamed
 public:
 	DefineUnrealStruct(FAdditionalLevelStreamed);
 
-	FName LevelName;
-
-	bool bIsServerOnly;
+	DefineStructProperty(FName, LevelName);
+	DefineStructProperty(bool, bIsServerOnly);
 };

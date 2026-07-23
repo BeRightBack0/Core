@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UnrealType.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/SoftObjectPtr.h"
 
 class ULevel;
 class UWorld;
@@ -32,6 +33,38 @@ public:
 class ULevelStreamingDynamic : public ULevelStreaming {
 public:
 	DefineUnrealClass(ULevelStreamingDynamic);
+
+	static ULevelStreamingDynamic* LoadLevelInstanceBySoftObjectPtr(UObject* WorldContextObject, FSoftObjectPtr& Level, const FVector& Location, const FRotator& Rotation, bool* bOutSuccess, const FString& OptionalLevelNameOverride = FString())
+	{
+		static UObject* CDO = nullptr;
+		static UFunction* Func = nullptr;
+		static bool bSearched = false;
+
+		if (!bSearched) {
+			bSearched = true;
+
+			if (ULevelStreamingDynamic::StaticClass()) {
+				CDO = (UObject*)ULevelStreamingDynamic::GetDefaultObj();
+			}
+			else if (ULevelStreamingKismet::StaticClass()) {
+				CDO = (UObject*)ULevelStreamingKismet::GetDefaultObj();
+			}
+
+			if (CDO) {
+				Func = CDO->FindFunction("LoadLevelInstanceBySoftObjectPtr");
+			}
+
+			if (!Func) {
+				Log("ULevelStreamingDynamic::LoadLevelInstanceBySoftObjectPtr: function not found");
+			}
+		}
+
+		if (!CDO || !Func) {
+			return nullptr;
+		}
+
+		return CDO->Call<ULevelStreamingDynamic*>(Func, WorldContextObject, Level, Location, Rotation, bOutSuccess, OptionalLevelNameOverride);
+	}
 };
 
 class ULevelStreamingAlwaysLoaded : public ULevelStreaming {
