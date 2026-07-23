@@ -57,21 +57,12 @@ LONG WINAPI CoreUnhandledExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 
     FreezeOtherThreads();
 
-    STACKFRAME64 stackFrame{};
-
     char symName[1024 * sizeof(TCHAR)];
     char symStorage[sizeof(IMAGEHLP_SYMBOL64) + sizeof(symName)];
     auto sym = (IMAGEHLP_SYMBOL64*)symStorage;
 
     auto currentPrc = GetCurrentProcess();
-    auto currentThr = GetCurrentThread();
     DWORD64 displacement = 0;
-    stackFrame.AddrPC.Offset = ExceptionInfo->ContextRecord->Rip;
-    stackFrame.AddrPC.Mode = AddrModeFlat;
-    stackFrame.AddrStack.Offset = ExceptionInfo->ContextRecord->Rsp;
-    stackFrame.AddrStack.Mode = AddrModeFlat;
-    stackFrame.AddrFrame.Offset = ExceptionInfo->ContextRecord->Rbp;
-    stackFrame.AddrFrame.Mode = AddrModeFlat;
 
     SymCleanup(currentPrc);
 
@@ -138,20 +129,15 @@ LONG WINAPI CoreUnhandledExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
     }
     reportStream << "\n\n";
 
-    for (int frame = 0;; frame++)
+    CONTEXT ctx = *ExceptionInfo->ContextRecord;
+
+    for (int frame = 0; frame < 64 && ctx.Rip; frame++)
     {
-        auto contextCpy = *ExceptionInfo->ContextRecord;
-        contextCpy.ContextFlags = CONTEXT_ALL;
+        DWORD64 pc = ctx.Rip;
 
-        auto result
-            = StackWalk(IMAGE_FILE_MACHINE_AMD64, currentPrc, currentThr, &stackFrame, ExceptionInfo->ContextRecord, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL);
+        reportStream << std::format("0x{:016X}", static_cast<uint64_t>(pc));
 
-        if (result == false)
-            break;
-
-        reportStream << std::format("0x{:016X}", static_cast<uint64_t>(stackFrame.AddrPC.Offset));
-
-        auto imageBase = SymGetModuleBase64(currentPrc, stackFrame.AddrPC.Offset);
+        auto imageBase = SymGetModuleBase64(currentPrc, pc);
         if (imageBase)
         {
             char path[1024];
@@ -159,15 +145,15 @@ LONG WINAPI CoreUnhandledExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
 
             auto filteredPath = strrchr(path, '\\');
 
-            reportStream << " (" << (filteredPath ? filteredPath + 1 : path) << "+" 
-                         << std::format("0x{:X}", static_cast<uint64_t>(stackFrame.AddrPC.Offset - imageBase)) << ")";
+            reportStream << " (" << (filteredPath ? filteredPath + 1 : path) << "+"
+                         << std::format("0x{:X}", static_cast<uint64_t>(pc - imageBase)) << ")";
         }
         reportStream << ": ";
 
         sym->SizeOfStruct = sizeof(symStorage);
         sym->MaxNameLength = sizeof(symName);
 
-        BOOL SymResult = SymGetSymFromAddr64(currentPrc, (ULONG64)stackFrame.AddrPC.Offset, &displacement, sym);
+        BOOL SymResult = SymGetSymFromAddr64(currentPrc, (ULONG64)pc, &displacement, sym);
         if (SymResult == false || imageBase == ImageBase)
             reportStream << "[unknown]\n";
         else
@@ -177,12 +163,28 @@ LONG WINAPI CoreUnhandledExceptionFilter(LPEXCEPTION_POINTERS ExceptionInfo)
             reportStream << sym->Name << "()";
             IMAGEHLP_LINE64 ImageHelpLine = { 0 };
             ImageHelpLine.SizeOfStruct = sizeof(ImageHelpLine);
-            if (SymGetLineFromAddr64(currentPrc, (ULONG64)stackFrame.AddrPC.Offset, (::DWORD*)&displacement, &ImageHelpLine))
+            if (SymGetLineFromAddr64(currentPrc, (ULONG64)pc, (::DWORD*)&displacement, &ImageHelpLine))
             {
                 auto filteredName = strrchr(ImageHelpLine.FileName, '\\');
                 reportStream << " [" << (filteredName ? filteredName + 1 : ImageHelpLine.FileName) << ":" << ImageHelpLine.LineNumber << "]";
             }
             reportStream << "\n";
+        }
+
+        DWORD64 unwindBase = 0;
+        PRUNTIME_FUNCTION funcEntry = RtlLookupFunctionEntry(pc, &unwindBase, nullptr);
+        if (funcEntry)
+        {
+            PVOID handlerData = nullptr;
+            DWORD64 establisherFrame = 0;
+            RtlVirtualUnwind(UNW_FLAG_NHANDLER, unwindBase, pc, funcEntry, &ctx, &handlerData, &establisherFrame, nullptr);
+        }
+        else
+        {
+            if (!ctx.Rsp)
+                break;
+            ctx.Rip = *reinterpret_cast<DWORD64*>(ctx.Rsp);
+            ctx.Rsp += 8;
         }
     }
     auto reportStr = reportStream.str();

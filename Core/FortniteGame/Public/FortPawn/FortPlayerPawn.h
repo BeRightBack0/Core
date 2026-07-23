@@ -72,6 +72,7 @@ public:
 
 		if (Version::Fortnite_Version >= 1.82 || Version::Fortnite_Version == 1.10 || Version::Fortnite_Version == 1.11) {
 			ExecHook("Function /Script/FortniteGame.FortPlayerPawnAthena.OnCapsuleBeginOverlap", execOnCapsuleBeginOverlap, execOnCapsuleBeginOverlapOG);
+			ExecHook("Function /Script/FortniteGame.FortPlayerPawn.OnCapsuleBeginOverlap", execOnCapsuleBeginOverlap, execOnCapsuleBeginOverlapOG);
 		}
 		
 		Log("AFortPlayerPawn Hooked!");

@@ -122,6 +122,9 @@ void AFortPlayerPawn::ServerHandlePickup(AFortPlayerPawn* This, AFortPickup* Pic
 void AFortPlayerPawn::execOnCapsuleBeginOverlap(AFortPlayerPawn* Context, FFrame& Stack) {
 	static UFunction* execOnCapsuleBeginOverlapFn = StaticClass()->GetFunction("Function /Script/FortniteGame.FortPlayerPawnAthena.OnCapsuleBeginOverlap");
 	if (!execOnCapsuleBeginOverlapFn) {
+		execOnCapsuleBeginOverlapFn = StaticClass()->GetFunction("Function /Script/FortniteGame.FortPlayerPawn.OnCapsuleBeginOverlap");
+	}
+	if (!execOnCapsuleBeginOverlapFn) {
 		Log("AFortPlayerPawn::execOnCapsuleBeginOverlap: Failed to find function!");
 		return;
 	}
@@ -168,12 +171,12 @@ void AFortPlayerPawn::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComp,
 		TryToAutoPickup(OtherActor);
 	}
 
-	/*if (OtherActor) {
+	if (OtherActor) {
 		Log("OnCapsuleBeginOverlap: Overlapped with: " + OtherActor->GetName().ToString());
 	}
 	else {
 		Log("OnCapsuleBeginOverlap: Overlapped with null actor!");
-	}*/
+	}
 }
 
 void AFortPlayerPawn::TryToAutoPickup(AFortPickup* Pickup) {
