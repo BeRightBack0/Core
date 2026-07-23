@@ -5847,7 +5847,7 @@ uintptr_t Finder::FindAFortPickup_GivePickupToVFT() {
 				Addr = static_cast<uintptr_t>(Offset) / 8;
 				break;
 			}
-			else if (*Ptr == 0x48 && *(Ptr + 1) == 0xFF && *(Ptr + 2) == 0xA0) {
+			if (*Ptr == 0x48 && *(Ptr + 1) == 0xFF && *(Ptr + 2) == 0xA0) {
 				int32_t Offset = *reinterpret_cast<int32_t*>(Ptr + 3);
 				Addr = static_cast<uintptr_t>(Offset) / 8;
 				break;
