@@ -349,6 +349,7 @@
     <ClInclude Include="FortniteGame\Public\FortAthenaVehicle\FortAthenaVehicle.h" />
     <ClInclude Include="FortniteGame\Public\FortVolume\FortPoiVolume.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\BrushComponent.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingFoundation.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Volume.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingGameplayActor.h" />
@@ -544,6 +545,7 @@
     <ClCompile Include="FortniteGame\Private\BuildingActor\BGAConsumableSpawner.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingActor.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingContainer.cpp" />
+    <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingFoundation.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingGameplayActor.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingItemCollectorActor.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingSMActor.cpp" />

@@ -7,6 +7,7 @@
 #include "FortniteGame/Public/FortHero/FortHeroType.h"
 #include "FortniteGame/Public/FortHero/FortHero.h"
 #include "FortniteGame/Public/FortCharacter/CustomCharacterPart.h"
+#include "FortniteGame/Public/BuildingActor/BuildingFoundation.h"
 #include "FortniteGame/Public/FortWorld/FortWorldManager.h"
 #include "FortniteGame/Public/FortGameState/FortGameStateAthena.h"
 #include "FortniteGame/Public/AI/FortAIDirector.h"
@@ -149,6 +150,8 @@ bool AFortGameModeAthena::SetupPlaylist() {
 		Playlist->LoadAdditionalLevelsServerOnly();
 		FortGameState->OnRep_AdditionalPlaylistLevelsStreamed();
 	}
+
+	ABuildingFoundation::SetupFoundations();
 
 	Log("AFortGameModeAthena::SetupPlaylist: Applied playlist " + (Playlist ? Playlist->GetFName().ToString().ToString() : std::to_string(CurrentPlaylistId)));
 
