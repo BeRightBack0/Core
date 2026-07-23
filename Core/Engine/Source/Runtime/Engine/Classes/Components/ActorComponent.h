@@ -26,4 +26,6 @@ public:
 	FORCEINLINE bool GetIsReplicated() const { return bReplicates; }
 
 	void SetIsReplicated(bool bShouldReplicate);
+
+	void RegisterComponent();
 };

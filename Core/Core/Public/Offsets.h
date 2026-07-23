@@ -306,6 +306,7 @@ namespace ServerOffsets {
 	inline uintptr_t ULevel_UpdateLevelComponents = 0;
 	inline uintptr_t ULevel_IncrementalUpdateComponents = 0;
 	inline uintptr_t ULevel_IncrementalUnregisterComponents = 0;
+	inline uintptr_t UActorComponent_RegisterComponentWithWorld = 0;
 	inline uintptr_t ULevel_RouteActorInitialize = 0;
 	inline uintptr_t ULevel_ApplyWorldOffset = 0;
 	inline uintptr_t ULevel_RegisterActorForAutoReceiveInput = 0;
@@ -549,6 +550,8 @@ namespace ServerOffsets {
 	inline uintptr_t AActor_PreInitializeComponents = 0;
 	inline uintptr_t AActor_PreInitializeComponentsVFT = 0;
 	inline uintptr_t AActor_PostInitializeComponentsVFT = 0;
+
+	inline uintptr_t AFortPoiVolume_OverlapsPawn = 0;
 
 	inline uintptr_t FDebug_AssertFailed = 0;
 

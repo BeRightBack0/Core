@@ -347,6 +347,10 @@
     <ClInclude Include="FortniteGame\Public\Athena\AthenaRewardResult.h" />
     <ClInclude Include="FortniteGame\Public\Athena\FortAthenaMapInfo.h" />
     <ClInclude Include="FortniteGame\Public\FortAthenaVehicle\FortAthenaVehicle.h" />
+    <ClInclude Include="FortniteGame\Public\FortVolume\FortPoiVolume.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\BrushComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\PhysicsEngine\BodySetup.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Volume.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingGameplayActor.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingItemCollectorActor.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingTrap.h" />
@@ -534,6 +538,7 @@
     <ClCompile Include="FortniteGame\Private\Asset\FortAssetManager.cpp" />
     <ClCompile Include="FortniteGame\Private\Athena\FortAthenaMapInfo.cpp" />
     <ClCompile Include="FortniteGame\Private\FortAthenaVehicle\FortAthenaVehicle.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortVolume\FortPoiVolume.cpp" />
     <ClCompile Include="FortniteGame\Private\FortSafeZone\FortSafeZoneIndicator.cpp" />
     <ClCompile Include="FortniteGame\Private\Events\Events.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BGAConsumableSpawner.cpp" />

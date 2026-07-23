@@ -3878,6 +3878,19 @@ uintptr_t Finder::FindULevel_IncrementalUnregisterComponents() {
 	return 0;
 }
 
+uintptr_t Finder::FindUActorComponent_RegisterComponentWithWorld() {
+	if (ServerOffsets::UActorComponent_RegisterComponentWithWorld)
+		return ServerOffsets::UActorComponent_RegisterComponentWithWorld;
+
+	auto StringRef = Memcury::Scanner::FindStringRef(L"RegisterComponentWithWorld: (%s) Already registered. Aborting.");
+	if (StringRef.IsValid()) {
+		ServerOffsets::UActorComponent_RegisterComponentWithWorld = StringRef.FindFunctionStart().Get() - ImageBase;
+	}
+
+	Log("UActorComponent_RegisterComponentWithWorld found at: 0x" + std::format("{:X}", ServerOffsets::UActorComponent_RegisterComponentWithWorld));
+	return ServerOffsets::UActorComponent_RegisterComponentWithWorld;
+}
+
 uintptr_t Finder::FindULevel_RouteActorInitialize() {
 	static uintptr_t Addr = 0;
 	if (ServerOffsets::ULevel_RouteActorInitialize)
@@ -10751,6 +10764,36 @@ uintptr_t Finder::FindAActor_PostInitializeComponentsVFT() {
 	return ServerOffsets::AActor_PostInitializeComponentsVFT;
 }
 
+uintptr_t Finder::FindAFortPoiVolume_OverlapsPawn() {
+	if (ServerOffsets::AFortPoiVolume_OverlapsPawn)
+		return ServerOffsets::AFortPoiVolume_OverlapsPawn;
+
+	uintptr_t Addr = 0;
+
+	// The stat string sits in AFortPoiVolume::GetTagsForPawnLocation right before
+	// the null checks on the pawn + its RootComponent, after which the very first
+	// call is OverlapsPawn.
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"STAT_PoiVolume_GetTagsForPawnLocation").Get();
+	if (StringAddr) {
+		for (int i = 0; i < 0x100; i++)
+		{
+			uintptr_t CurrentAddr = StringAddr + i;
+
+			if (*(uint8*)(CurrentAddr) == 0xE8)
+			{
+				Addr = Utils::GetCallDestination(CurrentAddr);
+				break;
+			}
+		}
+	}
+
+	if (Addr)
+		ServerOffsets::AFortPoiVolume_OverlapsPawn = Addr - ImageBase;
+
+	Log("AFortPoiVolume_OverlapsPawn found at: 0x" + std::format("{:X}", ServerOffsets::AFortPoiVolume_OverlapsPawn));
+	return ServerOffsets::AFortPoiVolume_OverlapsPawn;
+}
+
 uintptr_t Finder::FindAFortGameModeAthena_OnGivenMatchAssignmentVFT() {
 	if (ServerOffsets::AFortGameModeAthena_OnGivenMatchAssignmentVFT)
 		return ServerOffsets::AFortGameModeAthena_OnGivenMatchAssignmentVFT;
@@ -11330,6 +11373,8 @@ void Finder::SetupOffsets() {
 
 	FindAFortGameStateAthena_LoadCurrentPlaylistData();
 	FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad();
+
+	FindUActorComponent_RegisterComponentWithWorld();
 
 	return;
 }

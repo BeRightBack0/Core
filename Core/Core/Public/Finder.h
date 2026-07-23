@@ -433,6 +433,8 @@ public:
 
 	static uintptr_t FindULevel_IncrementalUnregisterComponents();
 
+	static uintptr_t FindUActorComponent_RegisterComponentWithWorld();
+
 	static uintptr_t FindULevel_RouteActorInitialize();
 
 	static uintptr_t FindAActor_IsPendingKillPending();
@@ -1084,6 +1086,8 @@ public:
 	static uintptr_t FindAFortGameMode_PlacePlayerOnTeamVFT();
 
 	static uintptr_t FindAActor_PostInitializeComponentsVFT();
+
+	static uintptr_t FindAFortPoiVolume_OverlapsPawn();
 
 	static uintptr_t FindAFortGameModeAthena_OnGivenMatchAssignmentVFT();
 

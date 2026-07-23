@@ -32,6 +32,7 @@
 #include <numeric>
 #include <cwctype>
 #include <cstdarg>
+#include <unordered_set>
 
 #include "../includes/memcury.h"
 #include "../includes/MinHook/MinHook.h"
