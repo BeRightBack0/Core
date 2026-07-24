@@ -21,9 +21,15 @@ public:
 
 	void EndAllAbilitiesFromAbilitySet(UFortAbilitySet* AbilitySet);
 
+	void RemoveAllAbilitiesFromAbilitySet(UFortAbilitySet* AbilitySet);
+
+	void RemoveAllEffectsFromAbilitySet(UFortAbilitySet* AbilitySet);
+
 	void EndAbility(UGameplayAbility* Ability);
 
 	void EndAbilitiesExcluding(TArray<TSubclassOf<UFortGameplayAbility>> AbilitiesToKeep);
+
+	void RemoveAbilitySet(UFortAbilitySet* AbilitySet);
 };
 
 class UFortAbilitySystemComponentAthena : public UFortAbilitySystemComponent {

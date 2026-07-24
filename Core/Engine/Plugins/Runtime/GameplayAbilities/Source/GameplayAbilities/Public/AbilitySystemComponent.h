@@ -85,6 +85,8 @@ public:
 
 	FActiveGameplayEffectHandle BP_ApplyGameplayEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext);
 
+	void RemoveActiveGameplayEffectBySourceEffect(TSubclassOf<UGameplayEffect> GameplayEffectClass, UAbilitySystemComponent* InstigatorAbilitySystemComponent = nullptr, int32 StacksToRemove = -1);
+
 	FGameplayEffectContextHandle MakeEffectContext() const;
 
 	TSharedPtr<FGameplayAbilityActorInfo>& GetAbilityActorInfo() {

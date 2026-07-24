@@ -37,6 +37,8 @@ public:
 
 	void ServerChoosePart(UCustomCharacterPart* ChosenCharacterPart, uint8 Part);
 
+	UCustomCharacterPart* GetPreviousCharacterPart(uint8 Part);
+
 	void RandomizeCharacter(const FString& GenderString);
 
 	static inline void (*ServerReviveFromDBNOOG)(AFortPlayerPawn* This, AController* EventInstigator);

@@ -157,6 +157,20 @@ FActiveGameplayEffectHandle UAbilitySystemComponent::BP_ApplyGameplayEffectToSel
 	return Call<FActiveGameplayEffectHandle>(Func, GameplayEffectClass, Level, EffectContext);
 }
 
+void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(TSubclassOf<UGameplayEffect> GameplayEffectClass, UAbilitySystemComponent* InstigatorAbilitySystemComponent, int32 StacksToRemove)
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("RemoveActiveGameplayEffectBySourceEffect");
+
+	if (!Func) {
+		return;
+	}
+
+	Call(Func, GameplayEffectClass, InstigatorAbilitySystemComponent, StacksToRemove);
+}
+
 FGameplayEffectContextHandle UAbilitySystemComponent::MakeEffectContext() const
 {
 	static UFunction* Func = nullptr;

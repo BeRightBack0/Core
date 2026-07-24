@@ -92,13 +92,72 @@ void UFortAbilitySystemComponent::EndAllAbilitiesFromAbilitySet(UFortAbilitySet*
 		if (AbilitySpec.Ability) {
 			UFortGameplayAbility* Ability = AbilitySpec.Ability->Cast<UFortGameplayAbility>();
 			for (int32 j = 0; j < AbilitySet->GameplayAbilities.Num(); j++) {
-				TSubclassOf<UFortGameplayAbility> GameplayAbility = AbilitySet->GameplayAbilities.GetWithSize(j, sizeof(TSubclassOf<UFortGameplayAbility>));
+				TSubclassOf<UFortGameplayAbility> GameplayAbility = AbilitySet->GameplayAbilities.GetWithSize(j);
 				if (GameplayAbility.Get() == Ability->GetClass()) {
 					ClientCancelAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo);
 					ClientEndAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo);
 					ServerEndAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo, FPredictionKey());
 					break;
 				}
+			}
+		}
+	}
+}
+
+void UFortAbilitySystemComponent::RemoveAllAbilitiesFromAbilitySet(UFortAbilitySet* AbilitySet) {
+	if (!AbilitySet) {
+		Log("UFortAbilitySystemComponent::RemoveAllAbilitiesFromAbilitySet: AbilitySet is null!");
+		return;
+	}
+
+	bool bRemovedAny = false;
+
+	for (int32 i = ActivatableAbilities.Items.Num() - 1; i >= 0; i--) {
+		FGameplayAbilitySpec& AbilitySpec = ActivatableAbilities.Items.GetWithSize(i, FGameplayAbilitySpec::GetSize());
+		if (AbilitySpec.Ability) {
+			UFortGameplayAbility* Ability = AbilitySpec.Ability->Cast<UFortGameplayAbility>();
+			for (int32 j = 0; j < AbilitySet->GameplayAbilities.Num(); j++) {
+				TSubclassOf<UFortGameplayAbility> GameplayAbility = AbilitySet->GameplayAbilities.GetWithSize(j);
+				if (GameplayAbility.Get() == Ability->GetClass()) {
+					ClientCancelAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo);
+					ClientEndAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo);
+					ServerEndAbility(AbilitySpec.Handle, AbilitySpec.ActivationInfo, FPredictionKey());
+
+					ActivatableAbilities.Items.RemoveAt(i, FGameplayAbilitySpec::GetSize());
+					bRemovedAny = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if (bRemovedAny) {
+		ActivatableAbilities.MarkArrayDirty();
+	}
+}
+
+void UFortAbilitySystemComponent::RemoveAllEffectsFromAbilitySet(UFortAbilitySet* AbilitySet) {
+	if (!AbilitySet) {
+		Log("UFortAbilitySystemComponent::RemoveAllEffectsFromAbilitySet: AbilitySet is null!");
+		return;
+	}
+
+	if (AbilitySet->_HasGrantedGameplayEffects()) {
+		for (int32 i = 0; i < AbilitySet->GrantedGameplayEffects.Num(); i++) {
+			FGameplayEffectApplicationInfoHard& EffectInfo = AbilitySet->GrantedGameplayEffects.GetWithSize(i, FGameplayEffectApplicationInfoHard::GetSize());
+
+			if (EffectInfo.GameplayEffect.Get()) {
+				RemoveActiveGameplayEffectBySourceEffect(EffectInfo.GameplayEffect.Get());
+			}
+		}
+	}
+
+	if (AbilitySet->_HasPassiveGameplayEffects()) {
+		for (int32 i = 0; i < AbilitySet->PassiveGameplayEffects.Num(); i++) {
+			FGameplayEffectApplicationInfo& EffectInfo = AbilitySet->PassiveGameplayEffects.GetWithSize(i, FGameplayEffectApplicationInfo::GetSize());
+
+			if (EffectInfo.GameplayEffect.Get()) {
+				RemoveActiveGameplayEffectBySourceEffect(EffectInfo.GameplayEffect.Get());
 			}
 		}
 	}
@@ -146,4 +205,9 @@ void UFortAbilitySystemComponent::EndAbilitiesExcluding(TArray<TSubclassOf<UFort
 			}
 		}
 	}
+}
+
+void UFortAbilitySystemComponent::RemoveAbilitySet(UFortAbilitySet* AbilitySet) {
+	RemoveAllAbilitiesFromAbilitySet(AbilitySet);
+	RemoveAllEffectsFromAbilitySet(AbilitySet);
 }

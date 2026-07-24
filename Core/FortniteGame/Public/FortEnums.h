@@ -162,16 +162,17 @@ enum EContextCredentials : int32
 	CXC_Public = 3,
 };
 
-enum class EFortCustomPartType : uint8
-{
-	Head = 0,
-	Body = 1,
-	Hat = 2,
-	Backpack = 3,
-	Charm = 4,
-	Face = 5,
-	NumTypes = 6,
-	EFortCustomPartType_MAX = 7,
+class EFortCustomPartType {
+public:
+	DefineUnrealEnum(EFortCustomPartType);
+
+	DefineEnumProperty(Head);
+	DefineEnumProperty(Body);
+	DefineEnumProperty(Hat);
+	DefineEnumProperty(Backpack);
+	DefineEnumProperty(Charm);
+	DefineEnumProperty(Face);
+	DefineEnumProperty(NumTypes);
 };
 
 class EBuildingReplacementType {

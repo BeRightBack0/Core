@@ -11,6 +11,9 @@
 #include "FortniteGame/Public/Interface/FortInventoryOwnerInterface.h"
 #include "FortniteGame/Public/Kismet/FortKismetLibrary.h"
 #include "FortniteGame/Public/FortPawn/FortPlayerPawnAthena.h"
+#include "FortniteGame/Public/FortPlayerState/FortPlayerStateAthena.h"
+#include "FortniteGame/Public/FortAbility/FortAbilitySystemComponent.h"
+#include "FortniteGame/Public/FortCharacter/CustomCharacterPart.h"
 #include "FortniteGame/Public/FortPickup/FortPickup.h"
 
 void AFortInventory::HandleInventoryLocalUpdate()
@@ -274,7 +277,7 @@ AFortPlayerController* AFortInventory::GetOwnerPlayerController() const
 	return Owner ? Owner->Cast<AFortPlayerController>() : nullptr;
 }
 
-FFortItemEntry* AFortInventory::AddItem(UFortWorldItem* Item, bool bDeferUpdate, int32 PreferredQuickBarSlot)
+FFortItemEntry* AFortInventory::AddItem(UFortWorldItem* Item, bool bDeferUpdate)
 {
 	if (!Item)
 		return nullptr;
@@ -286,13 +289,24 @@ FFortItemEntry* AFortInventory::AddItem(UFortWorldItem* Item, bool bDeferUpdate,
 	Item->SetOwningControllerForTemporaryItem(PC);
 	SetStateValues(&Item->ItemEntry);
 
+	UFortItemDefinition* ItemDefinition = Item->ItemEntry.ItemDefinition;
+
+	UFortGadgetItemDefinition* GadgetItemDefinition = ItemDefinition->Cast<UFortGadgetItemDefinition>();
+	if (GadgetItemDefinition) {
+		if (GadgetItemDefinition->bDropAllOnEquip) {
+			DropAllItems(true, false);
+			Inventory.ReplicatedEntries.Free();
+			Inventory.ItemInstances.Free();
+		}
+	}
+
 	InitializeExistingItem(Item);
 
 	FGuid ItemGuid = Item->ItemEntry.ItemGuid;
 
 	if (PC->IsUsingOldQuickBars())
 	{
-		PC->QuickBars->AddItemToQuickBar(ItemGuid, Item->ItemEntry.ItemDefinition->GetQuickBarForItem(), PreferredQuickBarSlot);
+		PC->QuickBars->AddItemToQuickBar(ItemGuid, Item->ItemEntry.ItemDefinition->GetQuickBarForItem());
 	}
 
 	FFortItemEntry* RepEntry = FindItemEntry(ItemGuid);
@@ -310,7 +324,7 @@ FFortItemEntry* AFortInventory::AddItem(UFortWorldItem* Item, bool bDeferUpdate,
 	return nullptr;
 }
 
-FFortItemEntry* AFortInventory::AddItem(UFortItemDefinition* Def, int32 Count, int32 Level, bool bDeferUpdate, int32 PreferredQuickBarSlot)
+FFortItemEntry* AFortInventory::AddItem(UFortItemDefinition* Def, int32 Count, int32 Level, bool bDeferUpdate)
 {
 	if (!CanAddItem(Def, Count))
 		return nullptr;
@@ -322,10 +336,10 @@ FFortItemEntry* AFortInventory::AddItem(UFortItemDefinition* Def, int32 Count, i
 		return nullptr;
 	}
 
-	return AddItem(Item, bDeferUpdate, PreferredQuickBarSlot);
+	return AddItem(Item, bDeferUpdate);
 }
 
-FFortItemEntry* AFortInventory::AddItem(const FFortItemEntry& ItemEntry, bool bDeferUpdate, int32 PreferredQuickBarSlot)
+FFortItemEntry* AFortInventory::AddItem(const FFortItemEntry& ItemEntry, bool bDeferUpdate)
 {
 	AFortPlayerController* PC = GetOwnerPlayerController();
 	if (!PC)
@@ -338,7 +352,7 @@ FFortItemEntry* AFortInventory::AddItem(const FFortItemEntry& ItemEntry, bool bD
 		return nullptr;
 	}
 
-	FFortItemEntry* RepEntry = AddItem(Def, ItemEntry.Count, ItemEntry.Level, bDeferUpdate, PreferredQuickBarSlot);
+	FFortItemEntry* RepEntry = AddItem(Def, ItemEntry.Count, ItemEntry.Level, bDeferUpdate);
 	if (!RepEntry)
 		return nullptr;
 
@@ -525,6 +539,9 @@ bool AFortInventory::RemoveItem(FGuid Guid, int32 Count, bool bDeferUpdate)
 	if (!PC)
 		return false;
 
+	AFortPlayerState* PlayerState = PC->PlayerState->Cast<AFortPlayerState>();
+	AFortPlayerPawn* Pawn = PC->MyFortPawn;
+
 	FFortItemEntry* Entry = FindItemEntry(Guid);
 	if (!Entry)
 		return false;
@@ -538,6 +555,36 @@ bool AFortInventory::RemoveItem(FGuid Guid, int32 Count, bool bDeferUpdate)
 	if (PC->IsUsingOldQuickBars())
 	{
 		PC->QuickBars->EmptyQuickbarSlot(Guid);
+	}
+
+	UFortItemDefinition* ItemDefinition = Entry->ItemDefinition;
+
+	UFortGadgetItemDefinition* GadgetItemDefinition = ItemDefinition->Cast<UFortGadgetItemDefinition>();
+	if (GadgetItemDefinition) {
+		UFortAbilitySet* GadgetAbilitySet = GadgetItemDefinition->AbilitySet.Get();
+		if (PlayerState && PlayerState->AbilitySystemComponent && GadgetAbilitySet) {
+			PlayerState->AbilitySystemComponent->RemoveAbilitySet(GadgetAbilitySet);
+		}
+
+		if (PlayerState && Pawn && GadgetItemDefinition->CharacterParts.Num() > 0) {
+			for (UCustomCharacterPart* GadgetPart : GadgetItemDefinition->CharacterParts) {
+				if (!GadgetPart)
+					continue;
+
+				uint8 Part = GadgetPart->CharacterPartType;
+
+				UCustomCharacterPart* PreviousPart = Pawn->GetPreviousCharacterPart(Part);
+				if (!PreviousPart && Part == EFortCustomPartType::GetBackpack()) {
+					PreviousPart = (UCustomCharacterPart*)StaticLoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack");
+				}
+
+				if (PreviousPart) {
+					Pawn->ServerChoosePart(PreviousPart, Part);
+				}
+			}
+
+			PlayerState->OnRep_CharacterParts();
+		}
 	}
 
 	RemoveEntryAndInstance(Guid);
@@ -745,9 +792,9 @@ FFortItemEntry* AFortInventory::SwapCurrentItem(const FFortItemEntry& NewItemEnt
 	if (QuickBars)
 		QuickBars->EmptySlot(CurrentQuickBar, FoundSlot);
 
-	RemoveEntryAndInstance(CurrentGuid);
+	RemoveItem(CurrentGuid, INT_MAX, true);
 
-	FFortItemEntry* AddedEntry = AddItem(NewItemEntry, true, CurrentSlot);
+	FFortItemEntry* AddedEntry = AddItem(NewItemEntry, true);
 	if (!AddedEntry)
 	{
 		AddItemPreserveGuid(OldItemEntry, CurrentSlot);
@@ -806,20 +853,6 @@ bool AFortInventory::AddItemAndHandleOverflow(const FFortItemEntry& ItemEntry, b
 	AFortPlayerController* PC = GetOwnerPlayerController();
 	if (!PC) {
 		return false;
-	}
-
-	UFortGadgetItemDefinition* GadgetItemDefinition = ItemEntry.ItemDefinition->Cast<UFortGadgetItemDefinition>();
-	if (GadgetItemDefinition && GadgetItemDefinition->bDropAllOnEquip) {
-		DropAllItems(true, false);
-		Inventory.ReplicatedEntries.Free();
-		Inventory.ItemInstances.Free();
-
-		FFortItemEntry* AddedGadget = AddItem(ItemEntry, false, GadgetItemDefinition->PreferredQuickbarSlot);
-		if (AddedGadget && GadgetItemDefinition->bForceFocusWhenAdded) {
-			PC->ClientExecuteInventoryItem(AddedGadget->ItemGuid, 0.f, false, false);
-		}
-
-		return AddedGadget;
 	}
 
 	int32 Overflow = GetOverflowFromAddingItem(ItemEntry);

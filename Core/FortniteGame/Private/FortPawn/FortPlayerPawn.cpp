@@ -39,6 +39,19 @@ void AFortPlayerPawn::ServerChoosePart(UCustomCharacterPart* ChosenCharacterPart
 	return Call(Func, Part, ChosenCharacterPart);
 }
 
+UCustomCharacterPart* AFortPlayerPawn::GetPreviousCharacterPart(uint8 Part)
+{
+	static UProperty* Prop = nullptr;
+
+	if (Prop == nullptr)
+		Prop = GetClass()->FindPropertyByName("PreviousCharacterParts");
+
+	if (!Prop || Part >= 6)
+		return nullptr;
+
+	return ((UCustomCharacterPart**)((uintptr_t)this + Prop->Offset_Internal))[Part];
+}
+
 void AFortPlayerPawn::RandomizeCharacter(const FString& GenderString)
 {
 	static UFunction* Func = nullptr;
