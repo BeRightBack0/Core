@@ -90,8 +90,6 @@ public:
 	static UClass* GetDefaultQuickBarsClass();
 
 	static void Hook() {
-		//PatchCall(ImageBase + 0xA35E3A, AFortQuickBars::StaticClass);
-
 		Log("Hooked AFortQuickBars");
 	}
 };
