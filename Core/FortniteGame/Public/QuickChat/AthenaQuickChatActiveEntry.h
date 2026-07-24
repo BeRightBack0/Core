@@ -14,6 +14,8 @@ public:
 	DefineStructProperty(int16, ContextValue);
 	DefineStructProperty(int8, Index);
 public:
+	uint8 Padding[0x18];
+public:
 	UAthenaQuickChatBank* GetBank() const {
 		static UProperty* BankProperty = StaticStruct()->FindPropertyByName("Bank");
 		if (!BankProperty) {

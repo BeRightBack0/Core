@@ -31,4 +31,6 @@ public:
 	DefineStructProperty(FGameplayTagContainer, SourceTagContainer);
 	DefineStructProperty(FGameplayTagContainer, ContextTagContainer);
 	DefineStructProperty(bool, bIsCached);
+public:
+	uint8 Padding[0xD0];
 };

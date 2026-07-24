@@ -11,4 +11,6 @@ public:
 	DefineUnrealStruct(FFortCampaignLoadout);
 
 	DefineStructProperty(UFortPersonalVehicleItem*, PersonalVehicle);
+public:
+	uint8 Padding[0x8];
 };

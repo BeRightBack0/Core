@@ -16,4 +16,6 @@ public:
 	DefineStructProperty(int32, BookMaxLevel);
 	DefineStructProperty(int32, BookLevelXp);
 	DefineStructProperty(int32, BookLevelXpForLevel);
+public:
+	uint8 Padding[0x24];
 };

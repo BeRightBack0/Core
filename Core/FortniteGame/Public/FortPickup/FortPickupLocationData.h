@@ -30,6 +30,8 @@ public:
 	DefineStructProperty(float, FlyTime);
 	DefineStructProperty(FVector, StartDirection);
 public:
+	uint8 Padding[0x60];
+public:
 	bool& GetPlayPickupSound() {
 		uintptr_t PlayPickupSoundAddr = StaticStruct()->GetPropertyOffset("bPlayPickupSound");
 		if (PlayPickupSoundAddr > 0) {

@@ -10,6 +10,8 @@ public:
 
 	DefineStructProperty(TSoftClassPtr<UClass>, GameplayEffect);
 	DefineStructProperty(float, Level);
+public:
+	uint8 Padding[0x30];
 };
 
 struct FGameplayEffectApplicationInfoHard {
@@ -18,4 +20,6 @@ public:
 
 	DefineStructProperty(TSoftClassPtr<UClass>, GameplayEffect);
 	DefineStructProperty(float, Level);
+public:
+	uint8 Padding[0x10];
 };

@@ -475,7 +475,8 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
         static int32 Size = -1; \
         if (Size == -1) \
         { \
-            Size = StaticStruct()->PropertiesSize; \
+            UStruct* Struct = StaticStruct(); \
+            Size = Struct ? Struct->PropertiesSize : 0; \
             if (Size <= 0) \
             { \
                 Log("Failed to find size for " #__Class "!"); \
@@ -486,8 +487,10 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
     } \
     static __Class* Allocate() \
     { \
-        void* Mem = FMemory::Malloc(GetSize()); \
-        if (Mem) memset(Mem, 0, GetSize()); \
+        int32 Size = GetSize(); \
+        if (Size <= 0) Size = (int32)sizeof(__Class); \
+        void* Mem = FMemory::Malloc(Size); \
+        if (Mem) memset(Mem, 0, Size); \
         return (__Class*)Mem; \
     } \
     static void Copy(__Class* Dest, const __Class* Src) \
@@ -530,10 +533,6 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
         return Mem; \
     } \
 
-// A reflected enum is a 1-byte value type: it carries its uint8 value, converts implicitly in both
-// directions, and so supports every integer operator (==, <, |, &, ~, switch, ...) and drops straight
-// into parameter structs and reflected calls in place of uint8. Enumerator values still resolve by
-// name at runtime (DefineEnumProperty), because they shift between builds.
 #define DefineUnrealEnum(__Class) \
 private: \
     uint8 __EnumValue = 0; \

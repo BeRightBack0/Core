@@ -32,6 +32,8 @@ public:
 	DefineStructProperty(bool, bAllowBonusDrops);
 	DefineStructProperty(FString, Annotation);
 public:
+	uint8 Padding[0xA8];
+public:
 	bool DoesLootPackageMatchWorldLevel(int32 WorldLevel);
 
 	static FFortLootPackageData* GetLootPackage(

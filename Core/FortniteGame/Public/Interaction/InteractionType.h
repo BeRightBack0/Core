@@ -14,4 +14,6 @@ public:
 
 	DefineStructProperty(uint8, InteractionType);
 	DefineStructProperty(TWeakObjectPtr<AFortPlayerPawn>, RequestingPawn);
+public:
+	uint8 Padding[0x38];
 };

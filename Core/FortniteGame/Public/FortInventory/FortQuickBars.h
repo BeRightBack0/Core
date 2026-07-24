@@ -29,6 +29,8 @@ public:
 	DefineStructProperty(TArray<EFortItemType>, AcceptedItemTypes);
 	DefineStructProperty(bool, bStaticSlot);
 	DefineStructProperty(TSoftObjectPtr<UFortWorldItemDefinition>, DefaultItem);
+public:
+	uint8 Padding[0x40];
 };
 
 struct FQuickBarData {

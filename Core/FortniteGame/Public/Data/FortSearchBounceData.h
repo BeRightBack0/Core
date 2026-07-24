@@ -9,4 +9,6 @@ public:
 
 	DefineStructProperty(FVector, BounceNormal);
 	DefineStructProperty(uint32, SearchAnimationCount);
+public:
+	uint8 Padding[0x10];
 };

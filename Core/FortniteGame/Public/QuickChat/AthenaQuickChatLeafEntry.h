@@ -16,4 +16,6 @@ public:
 	DefineStructProperty(UAthenaEmojiItemDefinition*, EmojiItemDefinition);
 	DefineStructProperty(uint8, TeamCommType);
 	DefineStructProperty(FGameplayTag, OptionGameplayTag);
+public:
+	uint8 Padding[0xD8];
 };

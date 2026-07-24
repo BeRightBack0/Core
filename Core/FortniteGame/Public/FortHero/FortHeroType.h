@@ -13,6 +13,8 @@ public:
 	DefineUnrealStruct(FHeroItem);
 
 	DefineStructProperty(TSoftObjectPtr<UFortWorldItemDefinition>, Item);
+public:
+	uint8 Padding[0x78];
 };
 
 class UFortHeroType : public UFortWorkerType {

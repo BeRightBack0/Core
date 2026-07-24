@@ -28,6 +28,8 @@ public:
 	DefineStructProperty(TArray<int32>, LootPackageCategoryMinArray);
 	DefineStructProperty(TArray<int32>, LootPackageCategoryMaxArray);
 public:
+	uint8 Padding[0xE0];
+public:
 	bool IsValid();
 
 	static FFortLootTierData* ChooseLootTierData(TArray<FFortLootTierData*>& LootTierData);

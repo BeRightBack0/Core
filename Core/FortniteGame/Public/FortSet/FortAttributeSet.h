@@ -9,6 +9,8 @@ public:
 
 	DefineStructProperty(float, Minimum);
 	DefineStructProperty(float, Maximum);
+public:
+	uint8 Padding[0x10];
 };
 
 class UFortAttributeSet : public UAttributeSet {

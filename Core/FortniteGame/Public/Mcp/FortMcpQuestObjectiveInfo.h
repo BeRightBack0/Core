@@ -41,4 +41,6 @@ public:
 	DefineStructProperty(bool, bDisplayDynamicAnnouncementUpdate);
 	DefineStructProperty(bool, bDisplayDynamicStatusUpdate);
 	DefineStructProperty(float, DynamicUpdateCompletionDelay);
+public:
+	uint8 Padding[0x110];
 };

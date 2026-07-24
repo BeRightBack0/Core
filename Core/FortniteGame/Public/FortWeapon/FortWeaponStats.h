@@ -27,4 +27,6 @@ public:
 struct FFortRangedWeaponStats : public FFortBaseWeaponStats {
 public:
 	DefineUnrealStruct(FFortRangedWeaponStats);
+public:
+	uint8 Padding[0x138];
 };

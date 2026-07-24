@@ -23,4 +23,6 @@ public:
 	DefineStructProperty(TArray<FFortItemEntry>, ReplicatedEntries);
 
 	DefineStructProperty(TArray<UFortWorldItem*>, ItemInstances);
+public:
+	uint8 Padding[0xC8];
 };

@@ -24,4 +24,6 @@ public:
 	DefineStructProperty(FString, PlayerName);
 
 	DefineStructProperty(UFortHeroType*, HeroType);
+public:
+	uint8 Padding[0x28];
 };
