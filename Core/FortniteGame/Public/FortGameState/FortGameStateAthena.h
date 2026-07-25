@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include "FortGameStateZone.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/ScriptDelegates.h"
 #include "FortniteGame/Public/FortPlaylist/PlaylistPropertyArray.h"
 #include "FortniteGame/Public/FortEnums.h"
 
@@ -38,6 +39,18 @@ public:
 	DefineUProperty(EAirCraftBehavior, AirCraftBehavior);
 	DefineUProperty(TArray<AFortAthenaAircraft*>, Aircrafts);
 	DefineUProperty(TArray<AFortAthenaMutator*>, GameplayMutators);
+	DefineUProperty(uint8, GamePhase);
+	DefineUProperty(uint8, SafeZonePhase);
+	DefineUProperty(uint8, GamePhaseStep);
+	DefineUProperty(float, WarmupCountdownStartTime);
+	DefineUProperty(float, WarmupCountdownEndTime);
+	DefineUProperty(float, SafeZonesStartTime);
+	DefineUProperty(float, EndGameKickPlayerTime);
+	DefineUProperty(float, GamePhaseStepTimeRemaining);
+	DefineUProperty(bool, bIsInCountdown);
+	DefineUProperty(bool, bIsInFinalCountdown);
+	DefineBitfieldUProperty(bAircraftIsLocked);
+	DefineUProperty(FMulticastScriptDelegate, GamePhaseStepChanged);
 	DefineUProperty(uint8, CachedSafeZoneStartUp);
 	DefineUProperty(bool, bIsLargeTeamGame);
 	DefineUProperty(bool, bStormReachedFinalPosition);
@@ -80,6 +93,14 @@ public:
 	void LoadCurrentPlaylistData();
 
 	void InitializePlaylistDataPreDataLoad();
+
+	float GetServerWorldTimeSeconds();
+
+	uint8 GetGamePhaseStep(float& OutTimeRemaining);
+	void UpdateGamePhaseStep();
+
+	static inline void (*TickOG)(AFortGameStateAthena* This, float DeltaSeconds);
+	static void Tick(AFortGameStateAthena* This, float DeltaSeconds);
 
 	static void Hook();
 };

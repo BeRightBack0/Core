@@ -8,6 +8,9 @@
 #include "FortniteGame/Public/FortPlaylist/FortPlaylistManager.h"
 #include "FortniteGame/Public/FortPlayerState/FortPlayerStateAthena.h"
 #include "FortniteGame/Public/FortGameMode/FortGameModeAthena.h"
+#include "FortniteGame/Public/FortSafeZone/FortSafeZoneIndicator.h"
+#include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
+#include "FortniteGame/Public/Athena/FortAthenaAircraft.h"
 
 void AFortGameStateAthena::OnRep_CurrentPlaylistId()
 {
@@ -229,6 +232,161 @@ void AFortGameStateAthena::InitializePlaylistDataPreDataLoad() {
 	}
 }
 
+float AFortGameStateAthena::GetServerWorldTimeSeconds() {
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("GetServerWorldTimeSeconds");
+
+	if (!Func) {
+		return UGameplayStatics::GetTimeSeconds(UWorld::GetWorld());
+	}
+
+	return Call<float>(Func);
+}
+
+uint8 AFortGameStateAthena::GetGamePhaseStep(float& OutTimeRemaining) {
+	uint8 Step = (uint8)EAthenaGamePhaseStep::None;
+	OutTimeRemaining = 0.0f;
+
+	const float Now = GetServerWorldTimeSeconds();
+
+	switch ((EAthenaGamePhase)GamePhase) {
+	case EAthenaGamePhase::Setup:
+	{
+		Step = (uint8)EAthenaGamePhaseStep::Setup;
+		break;
+	}
+	case EAthenaGamePhase::Warmup:
+	{
+		if (_HasWarmupCountdownStartTime() && WarmupCountdownStartTime < 0.0f) {
+			Step = (uint8)EAthenaGamePhaseStep::Setup;
+			break;
+		}
+
+		if (_HasWarmupCountdownEndTime() && WarmupCountdownEndTime > Now) {
+			OutTimeRemaining = (float)(int32)(WarmupCountdownEndTime - Now);
+			Step = OutTimeRemaining <= 10.0f
+				? (uint8)EAthenaGamePhaseStep::GetReady
+				: (uint8)EAthenaGamePhaseStep::Warmup;
+		}
+		else {
+			Step = (uint8)EAthenaGamePhaseStep::GetReady;
+		}
+		break;
+	}
+	case EAthenaGamePhase::Aircraft:
+	{
+		Step = (uint8)EAthenaGamePhaseStep::BusFlying;
+
+		for (AFortAthenaAircraft* Aircraft : Aircrafts) {
+			if (!Aircraft || !Aircraft->_HasDropStartTime())
+				continue;
+
+			const float DropStartTime = Aircraft->DropStartTime;
+			if (DropStartTime > Now) {
+				Step = (uint8)EAthenaGamePhaseStep::BusLocked;
+				OutTimeRemaining = (std::max)((DropStartTime - Now) + 1.0f, OutTimeRemaining);
+			}
+		}
+		break;
+	}
+	case EAthenaGamePhase::SafeZones:
+	{
+		if (_HasbIsInFinalCountdown() && bIsInFinalCountdown) {
+			Step = (uint8)EAthenaGamePhaseStep::FinalCountdown;
+			break;
+		}
+
+		if (_HasbIsInCountdown() && bIsInCountdown) {
+			Step = (uint8)EAthenaGamePhaseStep::Countdown;
+			break;
+		}
+
+		if (SafeZoneIndicator) {
+			const float StartShrinkTime = SafeZoneIndicator->SafeZoneStartShrinkTime;
+			const float FinishShrinkTime = SafeZoneIndicator->SafeZoneFinishShrinkTime;
+
+			if (StartShrinkTime - Now > 0.0f) {
+				Step = (uint8)EAthenaGamePhaseStep::StormHolding;
+				OutTimeRemaining = StartShrinkTime - Now;
+			}
+			else if (FinishShrinkTime - Now > 0.0f) {
+				Step = (uint8)EAthenaGamePhaseStep::StormShrinking;
+				OutTimeRemaining = FinishShrinkTime - Now;
+			}
+			else {
+				Step = (uint8)EAthenaGamePhaseStep::StormHolding;
+			}
+		}
+		else {
+			Step = (uint8)EAthenaGamePhaseStep::StormForming;
+			if (_HasSafeZonesStartTime() && SafeZonesStartTime > Now) {
+				OutTimeRemaining = SafeZonesStartTime - Now;
+			}
+		}
+		break;
+	}
+	case EAthenaGamePhase::EndGame:
+	{
+		Step = (uint8)EAthenaGamePhaseStep::EndGame;
+		if (_HasEndGameKickPlayerTime() && EndGameKickPlayerTime > Now) {
+			OutTimeRemaining = EndGameKickPlayerTime - Now;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	return Step;
+}
+
+void AFortGameStateAthena::UpdateGamePhaseStep() {
+	if (!_HasGamePhaseStep())
+		return;
+
+	float TimeRemaining = 0.0f;
+	const uint8 NewStep = GetGamePhaseStep(TimeRemaining);
+
+	if (_HasGamePhaseStepTimeRemaining()) {
+		GamePhaseStepTimeRemaining = TimeRemaining;
+	}
+
+	if (NewStep == GamePhaseStep)
+		return;
+
+	GamePhaseStep = NewStep;
+	ForceNetUpdate();
+
+	bool bBroadcast = false;
+	if (_HasGamePhaseStepChanged() && GamePhaseStepChanged.IsBound()) {
+		struct { uint8 NewGamePhaseStep; } Params{ NewStep };
+
+		GamePhaseStepChanged.ProcessMulticastDelegate(&Params);
+		bBroadcast = true;
+	}
+
+	if (!bBroadcast) {
+		for (AFortAthenaMutator* Mutator : GameplayMutators) {
+			if (!Mutator)
+				continue;
+
+			AFortAthenaMutator_Heist* HeistMutator = Mutator->Cast<AFortAthenaMutator_Heist>();
+			if (HeistMutator) {
+				HeistMutator->OnGamePhaseStepChanged(NewStep);
+			}
+		}
+	}
+
+	Log("AFortGameStateAthena::UpdateGamePhaseStep: GamePhaseStep -> " + std::to_string(NewStep));
+}
+
+void AFortGameStateAthena::Tick(AFortGameStateAthena* This, float DeltaSeconds) {
+	TickOG(This, DeltaSeconds);
+	This->UpdateGamePhaseStep();
+}
+
 void AFortGameStateAthena::Hook() {
 	HookEveryVTableIdx(
 		AFortGameStateAthena::StaticClass(),
@@ -236,6 +394,14 @@ void AFortGameStateAthena::Hook() {
 		ApplyHomebaseEffectsOnPlayerSetup,
 		(LPVOID*)&ApplyHomebaseEffectsOnPlayerSetupOG
 	);
+
+	if (Finder::FindAActor_TickVFT()) {
+		MH_CreateHook(
+			(LPVOID)(GetOffsetFromVTable(AFortGameStateAthena::GetDefaultObj(), Finder::FindAActor_TickVFT())),
+			Tick,
+			(LPVOID*)&TickOG
+		);
+	}
 
 	Log("Hooked AFortGameStateAthena");
 }

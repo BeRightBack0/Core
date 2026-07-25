@@ -21,17 +21,16 @@ public:
 
 	DefineUProperty(int32, WarmupRequiredPlayerCount);
 	DefineUProperty(int32, MaxPlayerCount);
-
 	DefineUProperty(float, PlaylistHotfixOriginalGCFrequency);
 	DefineUProperty(bool, bDisableGCOnServerDuringMatch);
 	DefineUProperty(bool, bPlaylistHotfixChangedGCDisabling);
-
 	DefineUProperty(TArray<AFortPlayerControllerAthena*>, AlivePlayers);
 	DefineUProperty(int32, TeamAlivePlayers);
 	DefineUProperty(bool, bAllowSpectateAfterDeath);
 	DefineUProperty(bool, bAlwaysDBNO);
 	DefineUProperty(AFortAthenaPlaylistBase*, FortAthenaPlaylist);
 	DefineUProperty(UAthenaAISettings*, AISettings);
+	DefineUProperty(TArray<FVector>, SafeZoneLocations);
 public:
 	void OverrideAISettings(UAthenaAISettings* NewAISettings);
 

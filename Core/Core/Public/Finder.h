@@ -1083,6 +1083,8 @@ public:
 
 	static uintptr_t FindAActor_PreInitializeComponentsVFT();
 
+	static uintptr_t FindAActor_TickVFT();
+
 	static uintptr_t FindAFortGameModeAthena_PlacePlayerOnTeam();
 
 	static uintptr_t FindAFortGameMode_PlacePlayerOnTeamVFT();

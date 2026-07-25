@@ -10698,6 +10698,44 @@ uintptr_t Finder::FindAActor_PreInitializeComponents() {
 	return ServerOffsets::AActor_PreInitializeComponents;
 }
 
+uintptr_t Finder::FindAActor_TickVFT() {
+	if (ServerOffsets::AActor_TickVFT)
+		return ServerOffsets::AActor_TickVFT;
+
+	uintptr_t TickAddr = 0;
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"AFortAIDirectorDataManager::Tick");
+	if (StringAddr.IsValid()) {
+		TickAddr = StringAddr.FindFunctionStart().Get();
+	}
+
+	if (!TickAddr) {
+		return 0;
+	}
+
+	UClass* DataManagerClass = (UClass*)FUObjectArray::FindObject("Class /Script/FortniteGame.FortAIDirectorDataManager");
+	if (!DataManagerClass) {
+		return 0;
+	}
+
+	UObject* DataManagerCDO = DataManagerClass->GetDefaultObject();
+	if (!DataManagerCDO) {
+		return 0;
+	}
+
+	void** VFT = DataManagerCDO->VTable;
+	for (int i = 0; i < 2048; i++)
+	{
+		if (VFT[i] == (void*)TickAddr)
+		{
+			ServerOffsets::AActor_TickVFT = i;
+			break;
+		}
+	}
+
+	Log("AActor_TickVFT found at: 0x" + std::format("{:X}", ServerOffsets::AActor_TickVFT));
+	return ServerOffsets::AActor_TickVFT;
+}
+
 uintptr_t Finder::FindAActor_PreInitializeComponentsVFT() {
 	if (ServerOffsets::AActor_PreInitializeComponentsVFT)
 		return ServerOffsets::AActor_PreInitializeComponentsVFT;
@@ -11397,6 +11435,8 @@ void Finder::SetupOffsets() {
 	FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad();
 
 	FindUActorComponent_RegisterComponentWithWorld();
+
+	FindAActor_TickVFT();
 
 	return;
 }

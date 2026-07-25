@@ -46,6 +46,8 @@ void APlayerController::ClientMessage(const FString& S, FName Type, float MsgLif
 	if (Func == nullptr)
 		Func = FindFunction(UKismetStringLibrary::Conv_StringToName("ClientMessage"));
 
+	Log(S.ToString());
+
 	Call(Func, S, Type, MsgLifeTime);
 }
 

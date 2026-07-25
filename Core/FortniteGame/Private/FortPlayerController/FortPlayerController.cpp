@@ -34,6 +34,7 @@
 #include "FortniteGame/Public/Athena/FortAthenaAircraft.h"
 #include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
 #include "FortniteGame/Public/FortMutator/FortAthenaExitCraft.h"
+#include "FortniteGame/Public/FortSafeZone/FortSafeZoneIndicator.h"
 
 void AFortPlayerController::ClientForceProfileQuery()
 {
@@ -199,6 +200,10 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 		This->ClientMessage("TogglePersonalVehicle - Toggle the personal vehicle.");
 		This->ClientMessage("-- AFortAthenaMutator_Heist --");
 		This->ClientMessage("SetSpawnExitCraftTime <TimeLeft> - Sets the SpawnExitCraftTime to the time left.");
+		This->ClientMessage("DumpExitCraftTimer - Logs every gate the native van timer checks.");
+		This->ClientMessage("HeistPhaseStep [Step] - Fires OnGamePhaseStepChanged on the heist mutator (8 = StormShrinking, starts the van timer).");
+		This->ClientMessage("DumpGameState - Dumps the gamestate's phase/storm/playlist state.");
+		This->ClientMessage("UpdateGamePhaseStep - Forces the gamestate to recompute GamePhaseStep and dispatch it to mutators.");
 		This->ClientMessage("SpawnExitCraft [bUseSpawner] [ZOffset] [State] - Spawns a getaway van in front of you (State default 6 = WaitingForPawns).");
 		return;
 	}
@@ -1619,6 +1624,119 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 
 		This->ClientMessage(std::format("Set SpawnExitCraftTime: exit craft in {:.1f}s (was {:.1f}s)!", TimeLeft, OldTimeLeft));
 	}
+	else if (Parser.IsCommand("DumpExitCraftTimer") || Parser.IsCommand("HeistPhaseStep")) {
+		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
+		if (!GameState) {
+			This->ClientMessage("GameState is null or not an AFortGameStateAthena!");
+			return;
+		}
+
+		AFortAthenaMutator_Heist* HeistMutator = nullptr;
+		for (AFortAthenaMutator* Mutator : GameState->GameplayMutators) {
+			if (Mutator && (HeistMutator = Mutator->Cast<AFortAthenaMutator_Heist>())) {
+				break;
+			}
+		}
+
+		if (!HeistMutator) {
+			This->ClientMessage("No AFortAthenaMutator_Heist in GameplayMutators! Are you on a Getaway playlist?");
+			return;
+		}
+
+		if (Parser.IsCommand("HeistPhaseStep")) {
+			uint8 Step = (uint8)Parser.GetArgInt("Step", 0, 8);
+
+			HeistMutator->OnGamePhaseStepChanged(Step);
+			This->ClientMessage("Fired OnGamePhaseStepChanged(" + std::to_string(Step) + ") on " + HeistMutator->GetName().ToString());
+		}
+
+		This->ClientMessage("===== Heist ExitCraft Timer State =====");
+		This->ClientMessage("Role: " + std::to_string(HeistMutator->Role));
+		This->ClientMessage("CachedGameMode: " + std::string(HeistMutator->CachedGameMode ? "set" : "NULL"));
+		This->ClientMessage("CachedGameState: " + std::string(HeistMutator->CachedGameState ? "set" : "NULL"));
+		This->ClientMessage("SpawnExitCraftTime: " + std::to_string(HeistMutator->SpawnExitCraftTime));
+		This->ClientMessage("CurrExitCraftIndexToSpawn: " + std::to_string(HeistMutator->CurrExitCraftIndexToSpawn));
+		This->ClientMessage("HeistExitCraftSpawnData.Num: " + std::to_string(HeistMutator->HeistExitCraftSpawnData.Num()));
+		This->ClientMessage("RemainingExitCraftSpawnIndexes.Num: " + std::to_string(HeistMutator->RemainingExitCraftSpawnIndexes.Num()));
+		This->ClientMessage("SpawnedExitCraftList.Num: " + std::to_string(HeistMutator->SpawnedExitCraftList.Num()));
+		This->ClientMessage("NumUnspawned: " + std::to_string(HeistMutator->NumUnspawnedExitCrafts) + " NumSpawned: " + std::to_string(HeistMutator->NumSpawnedExitCrafts) + " NumDeparted: " + std::to_string(HeistMutator->NumDepartedExitCrafts));
+
+		if (GameState->_HasSafeZonePhase()) {
+			This->ClientMessage("GameState SafeZonePhase: " + std::to_string(GameState->SafeZonePhase));
+		}
+		if (GameState->_HasGamePhaseStep()) {
+			This->ClientMessage("GameState GamePhaseStep: " + std::to_string(GameState->GamePhaseStep));
+		}
+
+		if (HeistMutator->CurrExitCraftIndexToSpawn >= 0 && HeistMutator->CurrExitCraftIndexToSpawn < HeistMutator->HeistExitCraftSpawnData.Num()) {
+			FHeistExitCraftSpawnData& SpawnData = HeistMutator->HeistExitCraftSpawnData.GetWithSize(HeistMutator->CurrExitCraftIndexToSpawn, FHeistExitCraftSpawnData::GetSize());
+
+			This->ClientMessage("Next van WhenToSpawn phase: " + std::to_string((int32)SpawnData.SafeZonePhaseWhenToSpawn.Evaluate(0))
+				+ " WhereToSpawn index: " + std::to_string((int32)SpawnData.SafeZonePhaseWhereToSpawn.Evaluate(0)));
+		}
+
+		This->ClientMessage("===== End Heist ExitCraft Timer State =====");
+	}
+	else if (Parser.IsCommand("UpdateGamePhaseStep")) {
+		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
+		if (!GameState) {
+			This->ClientMessage("GameState is null or not an AFortGameStateAthena!");
+			return;
+		}
+
+		uint8 Before = GameState->_HasGamePhaseStep() ? GameState->GamePhaseStep : 255;
+		GameState->UpdateGamePhaseStep();
+		uint8 After = GameState->_HasGamePhaseStep() ? GameState->GamePhaseStep : 255;
+
+		This->ClientMessage("UpdateGamePhaseStep: GamePhaseStep " + std::to_string(Before) + " -> " + std::to_string(After));
+	}
+	else if (Parser.IsCommand("DumpGameState")) {
+		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
+		if (!GameState) {
+			This->ClientMessage("GameState is null or not an AFortGameStateAthena!");
+			return;
+		}
+
+		This->ClientMessage("===== GameState Dump =====");
+		if (GameState->_HasGamePhase()) {
+			This->ClientMessage("GamePhase: " + std::to_string(GameState->GamePhase));
+		}
+		if (GameState->_HasGamePhaseStep()) {
+			This->ClientMessage("GamePhaseStep: " + std::to_string(GameState->GamePhaseStep));
+		}
+		if (GameState->_HasSafeZonePhase()) {
+			This->ClientMessage("SafeZonePhase: " + std::to_string(GameState->SafeZonePhase));
+		}
+		if (GameState->_HasCachedSafeZoneStartUp()) {
+			This->ClientMessage("CachedSafeZoneStartUp: " + std::to_string(GameState->CachedSafeZoneStartUp));
+		}
+		This->ClientMessage("SafeZoneIndicator: " + std::string(GameState->SafeZoneIndicator ? "set" : "NULL"));
+		if (GameState->SafeZoneIndicator) {
+			FVector Center = GameState->SafeZoneIndicator->GetSafeZoneCenter();
+			This->ClientMessage(std::format("SafeZone Center: {:.0f}, {:.0f}, {:.0f} Radius: {:.0f}", Center.X, Center.Y, Center.Z, GameState->SafeZoneIndicator->GetSafeZoneRadius()));
+		}
+		This->ClientMessage("MapInfo: " + std::string(GameState->MapInfo ? "set" : "NULL"));
+		if (GameState->MapInfo) {
+			This->ClientMessage("MapInfo SafeZoneDefinitions.Num: " + std::to_string(GameState->MapInfo->SafeZoneDefinitions.Num()));
+		}
+		if (GameState->_HasCurrentPlaylistId()) {
+			This->ClientMessage("CurrentPlaylistId: " + std::to_string(GameState->CurrentPlaylistId));
+		}
+		if (GameState->_HasbPlaylistDataIsLoaded()) {
+			This->ClientMessage("bPlaylistDataIsLoaded: " + std::string(GameState->bPlaylistDataIsLoaded ? "true" : "false"));
+		}
+		if (GameState->_HasTotalPlayers()) {
+			This->ClientMessage("TotalPlayers: " + std::to_string(GameState->TotalPlayers) + " PlayersLeft: " + std::to_string(GameState->PlayersLeft) + " TeamsLeft: " + std::to_string(GameState->TeamsLeft));
+		}
+		if (GameState->_HasAirCraftBehavior()) {
+			This->ClientMessage("AirCraftBehavior: " + std::to_string(GameState->AirCraftBehavior));
+		}
+		if (GameState->_HasbStormReachedFinalPosition()) {
+			This->ClientMessage("bStormReachedFinalPosition: " + std::string(GameState->bStormReachedFinalPosition ? "true" : "false"));
+		}
+		This->ClientMessage("GameplayMutators.Num: " + std::to_string(GameState->GameplayMutators.Num()) + " Aircrafts.Num: " + std::to_string(GameState->Aircrafts.Num()));
+		This->ClientMessage("===== End GameState Dump =====");
+	}
 	else if (Parser.IsCommand("SpawnExitCraft")) {
 		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
 		if (!GameState) {
@@ -1699,7 +1817,6 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 			Craft->ExitCraftInfo = CraftInfo;
 		}
 
-		// Walk the van into the given state (default WaitingForPawns=6, the parked/usable state)
 		uint8 TargetState = (uint8)Parser.GetArgInt("State", 2, 6);
 		Craft->CurrentState = TargetState;
 		Craft->OnNewState(TargetState);
@@ -1707,7 +1824,7 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 
 		Craft->ForceNetUpdate();
 
-		This->ClientMessage("Spawned exit craft " + Craft->GetName().ToString() + " directly! CurrentState=" + std::to_string(Craft->CurrentState));
+		This->ClientMessage("Spawned exit craft " + Craft->GetName().ToString() + " CurrentState=" + std::to_string(Craft->CurrentState));
 	}
 
 	if (Version::Fortnite_Version >= 2.2) {

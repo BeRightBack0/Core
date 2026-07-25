@@ -13,6 +13,9 @@ public:
 	DefineUProperty(float, NextRadius);
 	DefineUProperty(float, Radius);
 	DefineUProperty(USceneComponent*, SafeZoneMesh);
+	DefineUProperty(bool, bPaused);
+	DefineUProperty(float, SafeZoneStartShrinkTime);
+	DefineUProperty(float, SafeZoneFinishShrinkTime);
 public:
 	FVector GetSafeZoneCenter();
 

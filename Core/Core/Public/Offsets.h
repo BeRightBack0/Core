@@ -551,6 +551,7 @@ namespace ServerOffsets {
 	inline uintptr_t AActor__CreationTime = 0;
 	inline uintptr_t AActor_PreInitializeComponents = 0;
 	inline uintptr_t AActor_PreInitializeComponentsVFT = 0;
+	inline uintptr_t AActor_TickVFT = 0;
 	inline uintptr_t AActor_PostInitializeComponentsVFT = 0;
 
 	inline uintptr_t AFortPoiVolume_OverlapsPawn = 0;

@@ -4,6 +4,32 @@
 #include "Engine/Source/Runtime/Core/Public/HAL/Platform.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UnrealType.h"
 
+enum class EAthenaGamePhase : uint8 {
+	None = 0,
+	Setup = 1,
+	Warmup = 2,
+	Aircraft = 3,
+	SafeZones = 4,
+	EndGame = 5,
+	Count = 6,
+};
+
+enum class EAthenaGamePhaseStep : uint8 {
+	None = 0,
+	Setup = 1,
+	Warmup = 2,
+	GetReady = 3,
+	BusLocked = 4,
+	BusFlying = 5,
+	StormForming = 6,
+	StormHolding = 7,
+	StormShrinking = 8,
+	Countdown = 9,
+	FinalCountdown = 10,
+	EndGame = 11,
+	Count = 12,
+};
+
 class EFortPickupSourceTypeFlag {
 public:
 	DefineUnrealEnum(EFortPickupSourceTypeFlag);
