@@ -22,8 +22,7 @@
 
 void AFortGameModeZone::HandleStartingNewPlayer(AFortGameModeZone* This, AFortPlayerControllerZone* NewPlayer) {
 	Log("HandleStartingNewPlayer Called!");
-	//Fortnite in 25 October 2050
-	if (Version::Fortnite_Version <= 100.8 && Version::Fortnite_Version >= 1.8) {
+	if (Version::Fortnite_Version <= 6.0 && Version::Fortnite_Version >= 1.8) {
 		if (NewPlayer->PlayerCameraManager) {
 			NewPlayer->PlayerCameraManager->ViewRollMin = 0.0f;
 			NewPlayer->PlayerCameraManager->ViewRollMax = 0.0f;
