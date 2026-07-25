@@ -786,6 +786,21 @@
     <ClInclude Include="FortniteGame\Public\FortManager\FortBluGloManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortItemDefinition\FortGameplayModifierItemDefinition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaExitCraft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Heist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortGameplayMutator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FortniteGame\Public\Kismet\FortMissionLibrary.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1128,6 +1143,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortManager\FortCheatManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortInventory\FortInventory.cpp">

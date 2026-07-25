@@ -14,6 +14,7 @@ class AFortAthenaAircraft;
 class UCurveTable;
 class AFortPlayerState;
 class AFortSafeZoneIndicator;
+class AFortAthenaMutator;
 
 class AFortGameStateAthena : public AFortGameStateZone {
 public:
@@ -36,6 +37,7 @@ public:
 	DefineUProperty(AFortAthenaPlaylistBase*, FortAthenaPlaylistCDO);
 	DefineUProperty(EAirCraftBehavior, AirCraftBehavior);
 	DefineUProperty(TArray<AFortAthenaAircraft*>, Aircrafts);
+	DefineUProperty(TArray<AFortAthenaMutator*>, GameplayMutators);
 	DefineUProperty(uint8, CachedSafeZoneStartUp);
 	DefineUProperty(bool, bIsLargeTeamGame);
 	DefineUProperty(bool, bStormReachedFinalPosition);

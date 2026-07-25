@@ -257,11 +257,13 @@ TArray<FFortItemEntry> FFortLootPackageData::GetLootItems(
 			continue;
 		}
 
-		FFortItemEntry LootDropEntry = *FFortItemEntry::Allocate();
-		LootDropEntry.ItemDefinition = ItemDefinition;
-		LootDropEntry.SetCount(PickedLootPackage->Count);
+		FFortItemEntry* LootDropEntry = FFortItemEntry::Allocate();
+		if (LootDropEntry) {
+			LootDropEntry->ItemDefinition = ItemDefinition;
+			LootDropEntry->SetCount(PickedLootPackage->Count);
 
-		LootItems.Add(LootDropEntry, FFortItemEntry::GetSize());
+			LootItems.Add(*LootDropEntry, FFortItemEntry::GetSize());
+		}
 	}
 
 	return LootItems;

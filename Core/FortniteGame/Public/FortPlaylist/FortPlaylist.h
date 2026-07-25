@@ -9,6 +9,8 @@
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/SoftObjectPtr.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 
+class UFortGameplayModifierItemDefinition;
+
 class UFortPlaylist : public UPrimaryDataAsset {
 public:
 	DefineUnrealClass(UFortPlaylist);
@@ -31,6 +33,8 @@ public:
 
 	DefineUProperty(TSoftObjectPtr<UCurveTable>, ResourceRates);
 	DefineUProperty(TSoftObjectPtr<UCurveTable>, GameData);
+
+	DefineUProperty(TArray<TSoftObjectPtr<UFortGameplayModifierItemDefinition>>, ModifierList);
 public:
 	int32& GetPlaylistId();
 	FName& GetPlaylistName();

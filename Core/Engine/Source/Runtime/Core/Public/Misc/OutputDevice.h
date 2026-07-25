@@ -100,7 +100,7 @@ __forceinline static void ExecHook(const std::string& _Name, void* _Detour, _Ot&
 	UObject* _Fn = FUObjectArray::FindObject(_Name);
 	if (!_Fn)
 	{
-		Log("Failed to find function: " + _Name);
+		//Log("Failed to find function: " + _Name);
 		return;
 	}
 	ExecHook((UFunction*)_Fn, _Detour, _Orig);

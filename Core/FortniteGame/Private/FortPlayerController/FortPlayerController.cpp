@@ -32,6 +32,8 @@
 #include "FortniteGame/Public/AI/FortAIController.h"
 #include "FortniteGame/Public/AI/FortAIPawn.h"
 #include "FortniteGame/Public/Athena/FortAthenaAircraft.h"
+#include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
+#include "FortniteGame/Public/FortMutator/FortAthenaExitCraft.h"
 
 void AFortPlayerController::ClientForceProfileQuery()
 {
@@ -195,6 +197,9 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 		This->ClientMessage("EmoteAllSpecific [EmoteItemDefinitionName] - Everyone in the world uses a specific emote.");
 		This->ClientMessage("EmotePlayerByName <PlayerName> [EmoteItemDefinitionName] - make a player use a specific emote.");
 		This->ClientMessage("TogglePersonalVehicle - Toggle the personal vehicle.");
+		This->ClientMessage("-- AFortAthenaMutator_Heist --");
+		This->ClientMessage("SetSpawnExitCraftTime <TimeLeft> - Sets the SpawnExitCraftTime to the time left.");
+		This->ClientMessage("SpawnExitCraft [bUseSpawner] [ZOffset] [State] - Spawns a getaway van in front of you (State default 6 = WaitingForPawns).");
 		return;
 	}
 	else if (Parser.IsCommand("GiveItem")) {
@@ -1579,6 +1584,130 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 			This->ClientMessage("Aircraft: " + Aircraft->GetName().ToString());
 		}
 		This->ClientMessage("===== End Aircrafts Dump =====");
+	}
+	else if (Parser.IsCommand("SetSpawnExitCraftTime")) {
+		float TimeLeft = Parser.GetArgFloat("TimeLeft", 0, -1.0f);
+
+		if (TimeLeft < 0.0f) {
+			This->ClientMessage("Usage: SetSpawnExitCraftTime <TimeLeft>");
+			return;
+		}
+
+		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
+		if (!GameState) {
+			This->ClientMessage("GameState is null or not an AFortGameStateAthena!");
+			return;
+		}
+
+		AFortAthenaMutator_Heist* HeistMutator = nullptr;
+		for (AFortAthenaMutator* Mutator : GameState->GameplayMutators) {
+			if (Mutator && (HeistMutator = Mutator->Cast<AFortAthenaMutator_Heist>())) {
+				break;
+			}
+		}
+
+		if (!HeistMutator) {
+			This->ClientMessage("No AFortAthenaMutator_Heist in GameplayMutators! Are you on a Getaway playlist?");
+			return;
+		}
+
+		float WorldTime = UGameplayStatics::GetTimeSeconds(World);
+		float OldTimeLeft = HeistMutator->SpawnExitCraftTime - WorldTime;
+		HeistMutator->SpawnExitCraftTime = WorldTime + TimeLeft;
+
+		HeistMutator->ForceNetUpdate();
+
+		This->ClientMessage(std::format("Set SpawnExitCraftTime: exit craft in {:.1f}s (was {:.1f}s)!", TimeLeft, OldTimeLeft));
+	}
+	else if (Parser.IsCommand("SpawnExitCraft")) {
+		AFortGameStateAthena* GameState = World->GameState->Cast<AFortGameStateAthena>();
+		if (!GameState) {
+			This->ClientMessage("GameState is null or not an AFortGameStateAthena!");
+			return;
+		}
+
+		AFortAthenaMutator_Heist* HeistMutator = nullptr;
+		for (AFortAthenaMutator* Mutator : GameState->GameplayMutators) {
+			if (Mutator && (HeistMutator = Mutator->Cast<AFortAthenaMutator_Heist>())) {
+				break;
+			}
+		}
+
+		if (!HeistMutator) {
+			This->ClientMessage("No AFortAthenaMutator_Heist in GameplayMutators! Are you on a Getaway playlist?");
+			return;
+		}
+
+		UFortAthenaExitCraftInfo* CraftInfo = HeistMutator->ExitCraftInfo;
+		if (!CraftInfo) {
+			This->ClientMessage("HeistMutator->ExitCraftInfo is null!");
+			return;
+		}
+
+		AFortPlayerPawn* Pawn = This->Pawn->Cast<AFortPlayerPawn>();
+		if (!Pawn) {
+			This->ClientMessage("Pawn is null!");
+			return;
+		}
+
+		FVector ForwardVector = Pawn->GetActorForwardVector();
+		ForwardVector.Z = 0.0f;
+
+		FVector SpawnLoc = Pawn->K2_GetActorLocation() + ForwardVector * 800.0f;
+
+		bool bUseSpawner = Parser.GetArgBool("bUseSpawner", 0, false);
+
+		if (bUseSpawner) {
+			UClass* SpawnerClass = CraftInfo->ExitCraftSpawnerClass.Get();
+			if (!SpawnerClass) {
+				This->ClientMessage("ExitCraftSpawnerClass is null on " + CraftInfo->GetName().ToString());
+				return;
+			}
+
+			AFortAthenaExitCraftSpawner* Spawner = (AFortAthenaExitCraftSpawner*)World->SpawnActor(SpawnerClass, SpawnLoc);
+			if (!Spawner) {
+				This->ClientMessage("Failed to spawn " + SpawnerClass->GetName().ToString() + "!");
+				return;
+			}
+
+			if (!Spawner->ExitCraftInfo) {
+				Spawner->ExitCraftInfo = CraftInfo;
+			}
+
+			Spawner->StartExitCraftSpawnTimer();
+
+			This->ClientMessage("Spawned " + Spawner->GetName().ToString() + " and started its spawn timer!");
+			return;
+		}
+
+		UClass* CraftClass = CraftInfo->ExitCaftClass.Get();
+		if (!CraftClass) {
+			This->ClientMessage("ExitCaftClass is null on " + CraftInfo->GetName().ToString());
+			return;
+		}
+
+		float ZOffset = Parser.GetArgFloat("ZOffset", 1, 0.0f);
+		SpawnLoc.Z += ZOffset;
+
+		AFortAthenaExitCraft* Craft = (AFortAthenaExitCraft*)World->SpawnActor(CraftClass, SpawnLoc);
+		if (!Craft) {
+			This->ClientMessage("Failed to spawn " + CraftClass->GetName().ToString() + "!");
+			return;
+		}
+
+		if (!Craft->ExitCraftInfo) {
+			Craft->ExitCraftInfo = CraftInfo;
+		}
+
+		// Walk the van into the given state (default WaitingForPawns=6, the parked/usable state)
+		uint8 TargetState = (uint8)Parser.GetArgInt("State", 2, 6);
+		Craft->CurrentState = TargetState;
+		Craft->OnNewState(TargetState);
+		Craft->OnRep_CurrentState();
+
+		Craft->ForceNetUpdate();
+
+		This->ClientMessage("Spawned exit craft " + Craft->GetName().ToString() + " directly! CurrentState=" + std::to_string(Craft->CurrentState));
 	}
 
 	if (Version::Fortnite_Version >= 2.2) {
