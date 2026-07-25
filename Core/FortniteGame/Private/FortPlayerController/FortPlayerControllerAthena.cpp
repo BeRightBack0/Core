@@ -258,8 +258,8 @@ void AFortPlayerControllerAthena::ClientOnPawnDied_Implementation(FFortPlayerDea
 			}
 		}
 	}
-
-	if ((Version::Fortnite_Version <= 4.5 && Version::Fortnite_Version >= 1.91) || Version::Fortnite_Version == 1.10 || Version::Fortnite_Version == 1.11) {
+	//Fortnite in 25 October 2050
+	if ((Version::Fortnite_Version <= 100.8 && Version::Fortnite_Version >= 1.91) || Version::Fortnite_Version == 1.10 || Version::Fortnite_Version == 1.11) {
 		if (FortGameModeAthena->bAllowSpectateAfterDeath) {
 			APawn* PawnToSpectate = DeathReport.KillerPawn;
 			if (!PawnToSpectate && PlayerStateAthena->PlayerTeam) {
