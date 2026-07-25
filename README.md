@@ -117,6 +117,7 @@ Current command groups include:
 | World and actors | `SpawnActor`, `DumpActorsWithClass`, `DumpAircrafts`, `DestroyTarget`, `StartEvent` |
 | QuickBars | `SpawnQuickBars`, `DestroyQuickBars`, `DumpQuickBars` |
 | Testing and fun | `LootRain`, `SetGameSpeed`, `TeleportAllToMe`, `SwapPlaces`, `LaunchPawn`, `SetScale`, `ScalePawn`, `Goto`, `DestroyBuildings`, `EmoteAll`, `EmoteAllSpecific`, `EmotePlayerByName`, `TogglePersonalVehicle` |
+| AFortAthenaMutator_Heist | `SetSpawnExitCraftTime`, `DumpExitCraftTimer`, `HeistPhaseStep`, `DumpGameState`, `UpdateGamePhaseStep`, `SpawnExitCraft` |
 
 Run `cheat Help` in game for all commands, syntax, and descriptions.
 
