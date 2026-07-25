@@ -18,6 +18,7 @@
 #include "FortniteGame/Public/FortAbility/FortAbilitySystemComponent.h"
 #include "FortniteGame/Public/BuildingActor/BuildingItemCollectorActor.h"
 #include "FortniteGame/Public/FortGameState/FortGameStateAthena.h"
+#include "FortniteGame/Public/FortMutator/FortAthenaExitCraft.h"
 
 void AFortAthenaMapInfo::SpawnLlamas()
 {
@@ -132,4 +133,9 @@ FVector AFortAthenaMapInfo::GetMapCenter() const
 	}
 
 	return const_cast<AFortAthenaMapInfo*>(this)->Call<FVector>(Func);
+}
+
+void AFortAthenaMapInfo::Hook()
+{
+	Log("Hooked AFortAthenaMapInfo");
 }

@@ -169,6 +169,126 @@ namespace StubCallsites {
 		return 0;
 	}
 
+	// ---- locating a bound (lea'd) stub ---------------------------------------------------------
+
+	// Everything above is for stubs that are *called*. A stripped void method that gets bound to a
+	// delegate is different: the binder takes its address with `lea reg,[rip+rel32]` and stores it, so
+	// there is no call to find and nothing to patch with PatchCallFar. The site is the lea, and it has
+	// to be replaced with the address of a real implementation.
+	//
+	// The empty stub lea'd inside Function. Anchor this on a function known to bind the wanted method and
+	// nothing else that was stripped to nothing.
+	inline uintptr_t ResolveEmptyStub(uintptr_t Function)
+	{
+		if (!Function)
+			return 0;
+
+		uintptr_t End = Memcury::Scanner(Function).FindFunctionEnd().Get();
+
+		for (uintptr_t Cursor = Function; Cursor + 7 <= End; Cursor++)
+		{
+			auto* b = reinterpret_cast<const uint8_t*>(Cursor);
+
+			if ((b[0] != 0x48 && b[0] != 0x4C) || b[1] != 0x8D || (b[2] & 0xC7) != 0x05)
+				continue;
+
+			uintptr_t Target = Cursor + 7 + *reinterpret_cast<const int32_t*>(Cursor + 3);
+			if (IsEmptyStub(Target))
+				return Target;
+		}
+
+		return 0;
+	}
+
+	// True if the lea at Addr has its loaded value stored straight into an object field --
+	// `mov [base+disp], reg` with the lea's own destination register and no SIB byte.
+	//
+	// This is what separates the binding we want from a decoy. A binder stores the method pointer into
+	// the delegate it just allocated (`mov [rbx+10h], rax`), while unrelated uses of the same folded stub
+	// spill it to a stack local (`mov [rsp+50h], rax`) -- and a stack store always encodes rm=100 (SIB),
+	// so the two are trivially distinguishable without depending on the field offset. StartExitCraftSpawn
+	// Timer contains both, and which one comes first changes between builds, so picking the first lea by
+	// target alone silently patches the decoy on some builds.
+	inline bool IsBoundIntoObject(uintptr_t Addr)
+	{
+		auto* b = reinterpret_cast<const uint8_t*>(Addr);
+
+		int LeaReg = ((b[2] >> 3) & 7) + (b[0] == 0x4C ? 8 : 0);
+
+		// The store usually follows immediately, but the compiler is free to interleave a few
+		// instructions, so allow a short window.
+		for (uintptr_t Cursor = Addr + 7; Cursor < Addr + 7 + 0x20; Cursor++)
+		{
+			auto* m = reinterpret_cast<const uint8_t*>(Cursor);
+
+			if ((m[0] != 0x48 && m[0] != 0x4C) || m[1] != 0x89)
+				continue;
+
+			int Mod = (m[2] >> 6) & 3;
+			int Reg = ((m[2] >> 3) & 7) + (m[0] == 0x4C ? 8 : 0);
+			int Rm = m[2] & 7;
+
+			if (Reg != LeaReg)
+				continue;
+
+			// mod 01/10 = [base+disp]; rm 100 = SIB, which is how rsp/stack stores encode
+			if ((Mod == 1 || Mod == 2) && Rm != 4)
+				return true;
+		}
+
+		return false;
+	}
+
+	// The lea that loads Stub inside Function, or inside a function Function reaches within Depth levels
+	// of direct calls -- the load counterpart of FindCall, identified by target the same way. Where a
+	// function loads the same folded stub more than once, the one bound into an object wins; only if none
+	// qualifies does the first plain match stand in.
+	inline uintptr_t FindLea(uintptr_t Function, uintptr_t Stub, int Depth = 2)
+	{
+		if (!Function || !Stub || Depth < 0)
+			return 0;
+
+		uintptr_t End = Memcury::Scanner(Function).FindFunctionEnd().Get();
+		if (End <= Function)
+			return 0;
+
+		uintptr_t Fallback = 0;
+
+		for (uintptr_t Cursor = Function; Cursor < End; )
+		{
+			uintptr_t Addr = FindLeaRefInRange(Cursor, End, Stub);
+			if (!Addr)
+				break;
+
+			if (IsBoundIntoObject(Addr))
+				return Addr;
+
+			if (!Fallback)
+				Fallback = Addr;
+
+			Cursor = Addr + 1;
+		}
+
+		if (Fallback)
+			return Fallback;
+
+		if (Depth == 0)
+			return 0;
+
+		for (uintptr_t Cursor = Function; Cursor + 5 <= End; Cursor++)
+		{
+			if (*(uint8*)Cursor != 0xE8)
+				continue;
+
+			uintptr_t Callee = Memcury::PE::Address(Cursor).RelativeOffset(1).Get();
+
+			if (uintptr_t Addr = FindLea(Callee, Stub, Depth - 1))
+				return Addr;
+		}
+
+		return 0;
+	}
+
 	// ---- locators ------------------------------------------------------------------------------
 
 	// A site may list several locators. They are tried in order and the first that actually yields the
@@ -223,6 +343,39 @@ namespace StubCallsites {
 
 			Log(std::string(Label) + " Patch: " + Site.Name + " @ 0x" + std::format("{:X}", Addr - ImageBase));
 			PatchCallFar(Addr, Detour);
+		}
+	}
+
+	// Point every site's *bound-method load* at Detour, for methods stripped to an empty body and handed
+	// to a delegate. Same locator/skip behaviour as Patch; the site's lea is repointed instead of a call,
+	// so whatever the binder stores ends up being Detour and the delegate invokes it with the original
+	// arguments (for a UObject method delegate, the bound object as the first argument).
+	inline void PatchBound(const char* Label, uintptr_t Stub, void* Detour, std::initializer_list<FSite> Sites, bool bWarnIfNotFound = true)
+	{
+		for (const auto& Site : Sites)
+		{
+			uintptr_t Addr = 0;
+
+			for (const auto& Locator : Site.Locators)
+			{
+				uintptr_t Function = Locator();
+				if (!Function)
+					continue;
+
+				Addr = FindLea(Function, Stub);
+				if (Addr)
+					break;
+			}
+
+			if (!Addr) {
+				if (bWarnIfNotFound) {
+					Log(std::string("Failed to find patch for ") + Label + ": " + Site.Name);
+				}
+				continue;
+			}
+
+			Log(std::string(Label) + " Patch: " + Site.Name + " @ 0x" + std::format("{:X}", Addr - ImageBase));
+			PatchLeaFar(Addr, Detour);
 		}
 	}
 }

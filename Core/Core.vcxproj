@@ -457,7 +457,6 @@
     <ClInclude Include="FortniteGame\Public\FortWorker\FortWorker.h" />
     <ClInclude Include="FortniteGame\Public\FortWorker\FortWorkerType.h" />
     <ClInclude Include="FortniteGame\Public\FortWorld\AdditionalLevelStreamed.h" />
-    <ClInclude Include="FortniteGame\Public\FortWorld\FortAthenaMapInfo.h" />
     <ClInclude Include="FortniteGame\Public\FortWorld\FortWorldManager.h" />
     <ClInclude Include="FortniteGame\Public\Info\DeathInfo.h" />
     <ClInclude Include="FortniteGame\Public\Info\FortRegisteredPlayerInfo.h" />
@@ -558,6 +557,7 @@
     <ClCompile Include="FortniteGame\Private\FortItem\FortQuestItem.cpp" />
     <ClCompile Include="FortniteGame\Private\FortManager\FortCheatManager.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp" />
     <ClCompile Include="FortniteGame\Private\FortAnalytics\FortAnalytics.cpp" />
     <ClCompile Include="FortniteGame\Private\FortGameInstance\FortGameInstance.cpp" />
     <ClCompile Include="FortniteGame\Private\FortGameMode\FortGameMode.cpp" />

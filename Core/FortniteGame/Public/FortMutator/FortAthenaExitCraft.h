@@ -4,9 +4,29 @@
 #include "Engine/Source/Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/DataAsset.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/Templates/SubclassOf.h"
+#include "Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/ScalableFloat.h"
+
+#include "FortniteGame/Public/FortEnums.h"
 
 class AFortAthenaExitCraft;
 class AFortAthenaExitCraftSpawner;
+
+struct FExitCraftInfo {
+public:
+	DefineUnrealStruct(FExitCraftInfo);
+
+	DefineStructProperty(FScalableFloat, ExitCraftSpawnerZOffset);
+	DefineStructProperty(FScalableFloat, ExitCraftSpawnDelay);
+	DefineStructProperty(FScalableFloat, ExitCraftZOffset);
+	DefineStructProperty(FScalableFloat, ExitCraftTargetZOffset);
+	DefineStructProperty(FScalableFloat, ExitCraftTimeToHoverLocation);
+	DefineStructProperty(FScalableFloat, ExitCraftTimeToHoverRotation);
+	DefineStructProperty(FScalableFloat, ExitZOffset);
+	DefineStructProperty(FScalableFloat, ExitTime);
+	DefineStructProperty(FScalableFloat, InteractionTime);
+public:
+	uint8 Padding[0x1E8];
+};
 
 class UFortAthenaExitCraftInfo : public UPrimaryDataAsset {
 public:
@@ -14,6 +34,7 @@ public:
 
 	DefineUProperty(TSubclassOf<AFortAthenaExitCraft>, ExitCaftClass);
 	DefineUProperty(TSubclassOf<AFortAthenaExitCraftSpawner>, ExitCraftSpawnerClass);
+	DefineUProperty(FExitCraftInfo, ExitCraftInfo);
 };
 
 class AFortAthenaExitCraft : public AActor {
@@ -21,7 +42,7 @@ public:
 	DefineUnrealClass(AFortAthenaExitCraft);
 
 	DefineUProperty(UFortAthenaExitCraftInfo*, ExitCraftInfo);
-	DefineUProperty(uint8, CurrentState);
+	DefineUProperty(EExitCraftState, CurrentState);
 public:
 	void OnNewState(uint8 NewState) {
 		static UFunction* Func = nullptr;
@@ -79,4 +100,11 @@ public:
 		if (Func)
 			Call(Func);
 	}
+
+	static void SpawnExitCraft(AFortAthenaExitCraftSpawner* This);
+
+	static inline void (*BeginPlayOG)(AFortAthenaExitCraftSpawner* This);
+	static void BeginPlay(AFortAthenaExitCraftSpawner* This);
+
+	static void Hook();
 };

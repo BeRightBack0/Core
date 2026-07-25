@@ -24,6 +24,8 @@
 class ABuildingItemCollectorActor;
 class AFortAthenaSupplyDrop;
 class UFortSupplyDropInfo;
+class AFortAthenaExitCraftSpawner;
+class UFortAthenaExitCraftInfo;
 
 class AFortAthenaMapInfo : public AActor {
 public:
@@ -45,7 +47,5 @@ public:
 
 	FVector GetMapCenter() const;
 
-	static void Hook() {
-		Log("Hooked AFortAthenaMapInfo");
-	}
+	static void Hook();
 };

@@ -1837,6 +1837,77 @@ inline uintptr_t FindCallRefInRange(uintptr_t Start, uintptr_t End, uintptr_t Ta
     return 0;
 }
 
+// The void sibling of IsReturnNullStub: a function stripped to nothing at all, which ICF folds into one
+// shared empty body (IDA calls it nullsub_N). IsReturnNullStub won't match these -- it requires an
+// `xor eax,eax` first -- so a stripped void method needs its own predicate.
+inline bool IsEmptyStub(uintptr_t Addr)
+{
+    static const uintptr_t TextStart = Memcury::PE::Section::GetSection(".text").GetSectionStart().Get();
+    static const uintptr_t TextEnd = Memcury::PE::Section::GetSection(".text").GetSectionEnd().Get();
+
+    auto IsReadableCode = [](uintptr_t A) -> bool
+    {
+        return A >= TextStart && (A + 0x10) <= TextEnd;
+    };
+
+    if (!IsReadableCode(Addr))
+        return false;
+
+    // Same jmp-thunk chasing as IsReturnNullStub: incremental-linked builds reach the folded body
+    // through `EB rel8` / `E9 rel32` hops.
+    for (int hops = 0; hops < 4; hops++)
+    {
+        auto* j = reinterpret_cast<const uint8_t*>(Addr);
+        if (j[0] == 0xE9)
+            Addr = Addr + 5 + *reinterpret_cast<const int32_t*>(Addr + 1);
+        else if (j[0] == 0xEB)
+            Addr = Addr + 2 + *reinterpret_cast<const int8_t*>(Addr + 1);
+        else
+            break;
+
+        if (!IsReadableCode(Addr))
+            return false;
+    }
+
+    auto b = reinterpret_cast<const uint8_t*>(Addr);
+
+    return b[0] == 0xC3
+        || b[0] == 0xC2
+        || (b[0] == 0x48 && b[1] == 0x8D && b[2] == 0x64 && b[3] == 0x24 && b[4] == 0x08
+            && b[5] == 0xFF && b[6] == 0x64 && b[7] == 0x24 && b[8] == 0xF8);
+}
+
+// First `lea reg, [rip+rel32]` in [Start, End) whose resolved target == Target. The load sibling of
+// FindCallRefInRange: a delegate binds a method by taking its address with a lea rather than calling it,
+// so replacing a stripped bound method means repointing that lea, not a call.
+//
+// Encoding is REX.W + 8D + modrm, where modrm's mod=00 and rm=101 selects RIP-relative -- so the reg
+// field is free and any destination register matches (0x05 rax, 0x0D rcx, 0x15 rdx, ... 0x3D rdi, and
+// the REX.R forms for r8-r15). Total length 7.
+inline uintptr_t FindLeaRefInRange(uintptr_t Start, uintptr_t End, uintptr_t Target)
+{
+    if (!Start || !End || End <= Start || !Target)
+        return 0;
+
+    for (uintptr_t p = Start; p + 7 <= End; p++)
+    {
+        auto* b = reinterpret_cast<const uint8_t*>(p);
+
+        if ((b[0] != 0x48 && b[0] != 0x4C) || b[1] != 0x8D)
+            continue;
+
+        // modrm: mod==00 && rm==101 (RIP-relative), reg unconstrained
+        if ((b[2] & 0xC7) != 0x05)
+            continue;
+
+        uintptr_t Resolved = p + 7 + *reinterpret_cast<const int32_t*>(p + 3);
+        if (Resolved == Target)
+            return p;
+    }
+
+    return 0;
+}
+
 // Every E8 CALL in .text whose resolved target == Target (the call-site sibling of FindLeaRefsToAddress).
 inline std::vector<uintptr_t> FindCallRefsToAddress(uintptr_t Target)
 {

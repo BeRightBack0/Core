@@ -233,6 +233,31 @@ inline bool PatchCallFar(uintptr_t callSite, void* newTarget)
     return PatchCall(callSite, trampoline);
 }
 
+inline bool PatchLeaFar(uintptr_t leaAddr, void* newTarget)
+{
+    uintptr_t base = leaAddr & ~0xFFFFull;
+    void* trampoline = nullptr;
+
+    for (uintptr_t addr = base; addr > base - 0x80000000ull; addr -= 0x10000)
+    {
+        trampoline = VirtualAlloc((void*)addr, 16, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+        if (trampoline) break;
+    }
+
+    if (!trampoline)
+        return false;
+
+    uint8_t jmp[] = {
+        0xFF, 0x25, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    memcpy(&jmp[6], &newTarget, sizeof(newTarget));
+    memcpy(trampoline, jmp, sizeof(jmp));
+
+    int32_t rel = (int32_t)((uintptr_t)trampoline - (leaAddr + 7));
+    return PatchBytes((void*)(leaAddr + 3), &rel, sizeof(rel));
+}
+
 struct _Pad_0x10
 {
     uint8_t Padding[0x10];

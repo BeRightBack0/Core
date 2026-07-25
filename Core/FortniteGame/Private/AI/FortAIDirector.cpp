@@ -42,11 +42,6 @@ void AFortAIDirector::Hook() {
 		uintptr_t EncounterSequence = StubCallsites::FromString(L"Could not create encounter sequence with given tags: %s, generated sequence not found");
 		uintptr_t Stub = StubCallsites::ResolveStub(EncounterSequence);
 
-		if (!Stub) {
-			Log("AFortAIDirector::Hook: could not resolve the GetCurrent stub, no callsites patched!");
-			return;
-		}
-
 		StubCallsites::Patch("AFortAIDirector::GetCurrent", Stub, GetCurrent, {
 			{ "AFortMission::CreateEncounterSequence", {
 				[=] { return EncounterSequence; } } },

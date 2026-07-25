@@ -1148,6 +1148,9 @@
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortInventory\FortInventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

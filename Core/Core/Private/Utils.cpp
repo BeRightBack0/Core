@@ -40,6 +40,7 @@
 #include "FortniteGame/Public/FortAthenaVehicle/FortAthenaVehicle.h"
 #include "FortniteGame/Public/FortVolume/FortPoiVolume.h"
 #include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
+#include "FortniteGame/Public/FortMutator/FortAthenaExitCraft.h"
 #include "FortniteGame/Public/FortInventory/FortQuickBarsAthena.h"
 #include "FortniteGame/Public/AI/FortAIDirector.h"
 #include "FortniteGame/Public/AI/FortAIGoalManager.h"
@@ -256,6 +257,7 @@ void Utils::Hook() {
 	AFortAthenaVehicle::Hook();
 	AFortPoiVolume::Hook();
 	AFortAthenaMutator_Heist::Hook();
+	AFortAthenaExitCraftSpawner::Hook();
 
 	status = MH_EnableHook(MH_ALL_HOOKS);
 	if (status != MH_OK) {

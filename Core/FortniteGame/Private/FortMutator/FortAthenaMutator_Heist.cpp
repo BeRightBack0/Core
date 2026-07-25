@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
 
+#include "FortniteGame/Public/FortMutator/FortAthenaExitCraft.h"
+
 void AFortAthenaMutator_Heist::OnGamePhaseChanged(uint8 GamePhase)
 {
 	static UFunction* Func = nullptr;

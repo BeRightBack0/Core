@@ -440,3 +440,17 @@ public:
 	DefineEnumProperty(Default);
 	DefineEnumProperty(OpposingAirCraftForEachTeam);
 };
+
+class EExitCraftState {
+public:
+	DefineUnrealEnum(EExitCraftState);
+
+	DefineEnumProperty(None);
+	DefineEnumProperty(Spawned);
+	DefineEnumProperty(Landed);
+	DefineEnumProperty(SpawnBalloon);
+	DefineEnumProperty(GettingIntoPosition);
+	DefineEnumProperty(GettingIntoPosition_Simple);
+	DefineEnumProperty(WaitingForPawns);
+	DefineEnumProperty(Exiting);
+};

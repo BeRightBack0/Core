@@ -23,11 +23,6 @@ void AFortAIGoalManager::Hook() {
 	uintptr_t Stub = StubCallsites::ResolveStub(
 		StubCallsites::FromString(L"OnReceiveGoalQueryResult received by AFortAIController when no Goal Manager exists!"));
 
-	if (!Stub) {
-		Log("AFortAIGoalManager::Hook: could not resolve the GetCurrent stub, no callsites patched!");
-		return;
-	}
-
 	StubCallsites::Patch("AFortAIGoalManager::GetCurrent", Stub, GetCurrent, {
 		{ "AFortMission::CreateEncounterAssignment", {
 			StubCallsites::ByReflection("Function /Script/FortniteGame.FortMission.CreateEncounterAssignment") } },
