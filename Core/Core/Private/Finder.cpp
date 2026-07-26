@@ -3004,6 +3004,9 @@ uintptr_t Finder::FindAGameMode_AddInactivePlayer() {
 	if (ServerOffsets::AGameMode_AddInactivePlayer)
 		return ServerOffsets::AGameMode_AddInactivePlayer;
 	static uintptr_t Addr = 0;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::AGameMode_AddInactivePlayer;
 
 	Addr = Memcury::Scanner::FindPattern("40 53 56 57 41 54 48 83 EC ? ? ? ? 49 8B F0").Get();
 	if (!Addr) {
@@ -3014,6 +3017,7 @@ uintptr_t Finder::FindAGameMode_AddInactivePlayer() {
 		ServerOffsets::AGameMode_AddInactivePlayer = Addr - ImageBase;
 	}
 
+	bInitialized = true;
 	Log("AGameMode_AddInactivePlayer found at: 0x" + std::format("{:X}", ServerOffsets::AGameMode_AddInactivePlayer));
 	return ServerOffsets::AGameMode_AddInactivePlayer;
 }

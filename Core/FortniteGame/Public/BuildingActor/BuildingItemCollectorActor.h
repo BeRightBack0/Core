@@ -28,7 +28,7 @@ class UTexture;
 
 struct FColletorUnitInfo {
 public:
-	DefineUnrealStruct(FColletorUnitInfo);
+	DefineUnrealStructAliased(FColletorUnitInfo, "CollectorUnitInfo");
 
 	DefineStructProperty(UFortWorldItemDefinition*, InputItem);
 	DefineStructProperty(FScalableFloat, InputCount);

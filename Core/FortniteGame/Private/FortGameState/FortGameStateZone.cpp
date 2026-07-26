@@ -21,7 +21,7 @@ void AFortGameStateZone::OnRep_GameDifficulty()
 
 bool AFortGameStateZone::IsRespawningAllowed(AFortPlayerState* PlayerState)
 {
-	if (Version::Fortnite_Version > 6.02) {
+	if (Version::Fortnite_Version > 6.10) {
 		static UFunction* Func = nullptr;
 
 		if (Func == nullptr)

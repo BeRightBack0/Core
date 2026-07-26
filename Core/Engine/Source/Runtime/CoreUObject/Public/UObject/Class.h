@@ -472,6 +472,34 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
         return CachedStaticStruct; \
     } \
     \
+    DefineUnrealStructBody(__Class)
+
+#define DefineUnrealStructAliased(__Class, ...) \
+    static UStruct* StaticStruct() \
+    { \
+        static UStruct* CachedStaticStruct = nullptr; \
+        static bool bInitialized = false; \
+        \
+        if (!bInitialized) \
+        { \
+            bInitialized = true; \
+            CachedStaticStruct = (UStruct*)FUObjectArray::FindObjectFast(#__Class + 1); \
+            if (!CachedStaticStruct) \
+            { \
+                for (const char* AliasName : { __VA_ARGS__ }) \
+                { \
+                    CachedStaticStruct = (UStruct*)FUObjectArray::FindObjectFast(AliasName); \
+                    if (CachedStaticStruct) \
+                        break; \
+                } \
+            } \
+        } \
+        return CachedStaticStruct; \
+    } \
+    \
+    DefineUnrealStructBody(__Class)
+
+#define DefineUnrealStructBody(__Class) \
     static int32 GetSize() \
     { \
         static int32 Size = -1; \

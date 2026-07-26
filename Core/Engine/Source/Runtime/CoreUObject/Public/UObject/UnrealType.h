@@ -510,7 +510,8 @@ private: \
 public: \
     bool _Get##Name() { \
         if (Name##_Offset == -1) { \
-            UBoolProperty* Prop = (UBoolProperty*)StaticStruct()->FindPropertyByName(#Name);       \
+            UStruct* Struct = StaticStruct(); \
+            UBoolProperty* Prop = Struct ? (UBoolProperty*)Struct->FindPropertyByName(#Name) : nullptr; \
             if (Prop) { \
                 Name##_Offset = Prop->Offset_Internal; \
                 Name##_FieldMask = Prop->FieldMask; \
@@ -526,7 +527,8 @@ public: \
     } \
     bool _Get##Name() const { \
         if (Name##_Offset == -1) { \
-            UBoolProperty* Prop = (UBoolProperty*)StaticStruct()->FindPropertyByName(#Name); \
+            UStruct* Struct = StaticStruct(); \
+            UBoolProperty* Prop = Struct ? (UBoolProperty*)Struct->FindPropertyByName(#Name) : nullptr; \
             if (Prop) { \
                 Name##_Offset = Prop->Offset_Internal; \
                 Name##_FieldMask = Prop->FieldMask; \
@@ -542,7 +544,8 @@ public: \
     } \
     void _Set##Name(bool Value) { \
         if (Name##_Offset == -1) { \
-            UBoolProperty* Prop = (UBoolProperty*)StaticStruct()->FindPropertyByName(#Name); \
+            UStruct* Struct = StaticStruct(); \
+            UBoolProperty* Prop = Struct ? (UBoolProperty*)Struct->FindPropertyByName(#Name) : nullptr; \
             if (Prop) { \
                 Name##_Offset = Prop->Offset_Internal; \
                 Name##_FieldMask = Prop->FieldMask; \
