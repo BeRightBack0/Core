@@ -66,8 +66,10 @@ void AFortGameStateAthena::SetCurrentPlaylistId(int InPlaylistId) {
 
 		TeamCount = Playlist->MaxTeamCount;
 
-		InitializePlaylistDataPreDataLoad();
-		LoadCurrentPlaylistData();
+		if (!bPlaylistDataIsLoaded && !bPlaylistDataIsActivelyLoading) {
+			InitializePlaylistDataPreDataLoad();
+			LoadCurrentPlaylistData();
+		}
 	}
 }
 
