@@ -119,6 +119,28 @@ public:
 	);
 	static void execK2_RemoveItemFromAllPlayers(UObject* Object, FFrame& Stack);
 
+	static int32 K2_GetItemQuantityOnPlayer(
+		AFortPlayerController* PlayerController,
+		UFortItemDefinition* ItemDefinition
+	);
+	static void execK2_GetItemQuantityOnPlayer(UObject* Object, FFrame& Stack, int32* Result);
+
+	static int32 K2_RemoveItemFromPlayer(
+		AFortPlayerController* PlayerController,
+		UFortItemDefinition* ItemDefinition,
+		int32 AmountToRemove,
+		bool bForceRemoval
+	);
+	static void execK2_RemoveItemFromPlayer(UObject* Object, FFrame& Stack, int32* Result);
+
+	static int32 K2_RemoveItemFromPlayerByGuid(
+		AFortPlayerController* PlayerController,
+		FGuid ItemGuid,
+		int32 AmountToRemove,
+		bool bForceRemoval
+	);
+	static void execK2_RemoveItemFromPlayerByGuid(UObject* Object, FFrame& Stack, int32* Result);
+
 	static bool GetWeaponStatsRow(const FDataTableRowHandle& DataTableRowHandle, FFortBaseWeaponStats* OutRow);
 
 	static void Hook() {
@@ -129,6 +151,9 @@ public:
 		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.K2_GiveItemToAllPlayers", execK2_GiveItemToAllPlayers);
 		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.GetAIDirector", execGetAIDirector);
 		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromAllPlayers", execK2_RemoveItemFromAllPlayers);
+		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.K2_GetItemQuantityOnPlayer", execK2_GetItemQuantityOnPlayer);
+		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", execK2_RemoveItemFromPlayer);
+		ExecHook("Function /Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayerByGuid", execK2_RemoveItemFromPlayerByGuid);
 
 		Log("Hooked UFortKismetLibrary");
 	}

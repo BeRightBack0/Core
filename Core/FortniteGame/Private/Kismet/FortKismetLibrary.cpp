@@ -728,6 +728,183 @@ void UFortKismetLibrary::execK2_RemoveItemFromAllPlayers(UObject* Object, FFrame
 	K2_RemoveItemFromAllPlayers(WorldContextObject, ItemDefinition, &ItemVariantGuid, AmountToRemove);
 }
 
+int32 UFortKismetLibrary::K2_GetItemQuantityOnPlayer(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition)
+{
+	if (!PlayerController || !ItemDefinition || !PlayerController->WorldInventory) {
+		return 0;
+	}
+
+	int32 Quantity = 0;
+	for (FFortItemEntry* ItemEntry : PlayerController->WorldInventory->FindItemEntries(ItemDefinition)) {
+		if (ItemEntry) {
+			Quantity += ItemEntry->Count;
+		}
+	}
+
+	return Quantity;
+}
+
+void UFortKismetLibrary::execK2_GetItemQuantityOnPlayer(UObject* Object, FFrame& Stack, int32* Result)
+{
+	static UFunction* K2_GetItemQuantityOnPlayerFn = StaticClass()->GetFunction("Function /Script/FortniteGame.FortKismetLibrary.K2_GetItemQuantityOnPlayer");
+	if (!K2_GetItemQuantityOnPlayerFn) {
+		Log("UFortKismetLibrary::execK2_GetItemQuantityOnPlayer: Failed to find function!");
+		return;
+	}
+
+	AFortPlayerController* PlayerController = nullptr;
+	UFortItemDefinition* ItemDefinition = nullptr;
+	for (auto& Param : K2_GetItemQuantityOnPlayerFn->GetParams().NameOffsetMap)
+	{
+		std::string Name = Param.Name.ToString();
+		if (Name == "PlayerController") {
+			Stack.StepCompiledIn(&PlayerController);
+		}
+		else if (Name == "ItemDefinition") {
+			Stack.StepCompiledIn(&ItemDefinition);
+		}
+		else if (Name != "ReturnValue") {
+			Log("UFortKismetLibrary::execK2_GetItemQuantityOnPlayer: Unhandled parameter: " + Name);
+		}
+	}
+	Stack.IncrementCode();
+
+	*Result = K2_GetItemQuantityOnPlayer(PlayerController, ItemDefinition);
+}
+
+int32 UFortKismetLibrary::K2_RemoveItemFromPlayer(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int32 AmountToRemove, bool bForceRemoval)
+{
+	if (!PlayerController || !ItemDefinition || !PlayerController->WorldInventory) {
+		return 0;
+	}
+
+	AFortInventory* WorldInventory = PlayerController->WorldInventory;
+
+	bool bRemoveAll = AmountToRemove < 0;
+
+	std::vector<std::pair<FGuid, int32>> Stacks;
+	for (FFortItemEntry* ItemEntry : WorldInventory->FindItemEntries(ItemDefinition)) {
+		if (ItemEntry) {
+			Stacks.push_back({ ItemEntry->ItemGuid, ItemEntry->Count });
+		}
+	}
+
+	int32 AmountRemoved = 0;
+
+	for (auto& [ItemGuid, Count] : Stacks) {
+		if (!bRemoveAll && AmountToRemove <= 0) {
+			break;
+		}
+
+		int32 ToRemove = bRemoveAll ? Count : UKismetMathLibrary::Min(Count, AmountToRemove);
+
+		if (WorldInventory->RemoveItem(ItemGuid, bRemoveAll ? INT_MAX : ToRemove)) {
+			AmountRemoved += ToRemove;
+			if (!bRemoveAll) {
+				AmountToRemove -= ToRemove;
+			}
+		}
+	}
+
+	return AmountRemoved;
+}
+
+void UFortKismetLibrary::execK2_RemoveItemFromPlayer(UObject* Object, FFrame& Stack, int32* Result)
+{
+	static UFunction* K2_RemoveItemFromPlayerFn = StaticClass()->GetFunction("Function /Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer");
+	if (!K2_RemoveItemFromPlayerFn) {
+		Log("UFortKismetLibrary::execK2_RemoveItemFromPlayer: Failed to find function!");
+		return;
+	}
+
+	AFortPlayerController* PlayerController = nullptr;
+	UFortItemDefinition* ItemDefinition = nullptr;
+	int32 AmountToRemove = 0;
+	bool bForceRemoval = false;
+	for (auto& Param : K2_RemoveItemFromPlayerFn->GetParams().NameOffsetMap)
+	{
+		std::string Name = Param.Name.ToString();
+		if (Name == "PlayerController") {
+			Stack.StepCompiledIn(&PlayerController);
+		}
+		else if (Name == "ItemDefinition") {
+			Stack.StepCompiledIn(&ItemDefinition);
+		}
+		else if (Name == "AmountToRemove") {
+			Stack.StepCompiledIn(&AmountToRemove);
+		}
+		else if (Name == "bForceRemoval") {
+			Stack.StepCompiledIn(&bForceRemoval);
+		}
+		else if (Name != "ReturnValue") {
+			Log("UFortKismetLibrary::execK2_RemoveItemFromPlayer: Unhandled parameter: " + Name);
+		}
+	}
+	Stack.IncrementCode();
+
+	*Result = K2_RemoveItemFromPlayer(PlayerController, ItemDefinition, AmountToRemove, bForceRemoval);
+}
+
+int32 UFortKismetLibrary::K2_RemoveItemFromPlayerByGuid(AFortPlayerController* PlayerController, FGuid ItemGuid, int32 AmountToRemove, bool bForceRemoval)
+{
+	if (!PlayerController || !PlayerController->WorldInventory) {
+		return 0;
+	}
+
+	AFortInventory* WorldInventory = PlayerController->WorldInventory;
+
+	FFortItemEntry* ItemEntry = WorldInventory->FindItemEntry(ItemGuid);
+	if (!ItemEntry) {
+		return 0;
+	}
+
+	int32 Count = ItemEntry->Count;
+	bool bRemoveAll = AmountToRemove < 0;
+	int32 ToRemove = bRemoveAll ? Count : UKismetMathLibrary::Min(Count, AmountToRemove);
+
+	if (!WorldInventory->RemoveItem(ItemGuid, bRemoveAll ? INT_MAX : ToRemove)) {
+		return 0;
+	}
+
+	return ToRemove;
+}
+
+void UFortKismetLibrary::execK2_RemoveItemFromPlayerByGuid(UObject* Object, FFrame& Stack, int32* Result)
+{
+	static UFunction* K2_RemoveItemFromPlayerByGuidFn = StaticClass()->GetFunction("Function /Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayerByGuid");
+	if (!K2_RemoveItemFromPlayerByGuidFn) {
+		Log("UFortKismetLibrary::execK2_RemoveItemFromPlayerByGuid: Failed to find function!");
+		return;
+	}
+
+	AFortPlayerController* PlayerController = nullptr;
+	FGuid ItemGuid = FGuid();
+	int32 AmountToRemove = 0;
+	bool bForceRemoval = false;
+	for (auto& Param : K2_RemoveItemFromPlayerByGuidFn->GetParams().NameOffsetMap)
+	{
+		std::string Name = Param.Name.ToString();
+		if (Name == "PlayerController") {
+			Stack.StepCompiledIn(&PlayerController);
+		}
+		else if (Name == "ItemGuid") {
+			Stack.StepCompiledIn(&ItemGuid);
+		}
+		else if (Name == "AmountToRemove") {
+			Stack.StepCompiledIn(&AmountToRemove);
+		}
+		else if (Name == "bForceRemoval") {
+			Stack.StepCompiledIn(&bForceRemoval);
+		}
+		else if (Name != "ReturnValue") {
+			Log("UFortKismetLibrary::execK2_RemoveItemFromPlayerByGuid: Unhandled parameter: " + Name);
+		}
+	}
+	Stack.IncrementCode();
+
+	*Result = K2_RemoveItemFromPlayerByGuid(PlayerController, ItemGuid, AmountToRemove, bForceRemoval);
+}
+
 bool UFortKismetLibrary::GetWeaponStatsRow(const FDataTableRowHandle& DataTableRowHandle, FFortBaseWeaponStats* OutRow)
 {
 	bool (*GetWeaponStatsRowInternal)(const FDataTableRowHandle&, FFortBaseWeaponStats*) = decltype(GetWeaponStatsRowInternal)(ImageBase + Finder::FindUFortKismetLibrary_GetWeaponStatsRow());
