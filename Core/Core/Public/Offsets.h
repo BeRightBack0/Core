@@ -689,4 +689,6 @@ namespace ServerOffsets {
 	inline uintptr_t FSpecialActorInitData_Destructor = 0;
 
 	inline uintptr_t AFortSpecialActorReplicationInfo_AddActorToReplicationList = 0;
+
+	inline uintptr_t AFortAIDirector_StartEncounterWithoutObjective = 0;
 }

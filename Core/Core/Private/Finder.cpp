@@ -11082,6 +11082,29 @@ uintptr_t Finder::FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad() {
 	return ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad;
 }
 
+uintptr_t Finder::FindAFortAIDirector_StartEncounterWithoutObjective() {
+	if (ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective)
+		return ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective;
+	uintptr_t Addr = 0;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective;
+
+	auto StringRef = Memcury::Scanner::FindStringRef(L"FortAIDirector StartEncounter %s class %s FAILED!");
+	if (StringRef.IsValid()) {
+		uintptr_t FunctionStart = StringRef.FindFunctionStart().Get();
+		Addr = Memcury::Scanner::FindPointerRef((LPVOID)FunctionStart, 3).Get();
+	}
+
+	if (Addr) {
+		ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective = Addr - ImageBase;
+	}
+
+	bInitialized = true;
+	Log("AFortAIDirector_StartEncounterWithoutObjective found at: 0x" + std::format("{:X}", ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective));
+	return ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective;
+}
+
 void Finder::SetupCoreOffsets() {
 	ServerOffsets::FFrame__CurrentNativeFunction = Version::Fortnite_Version >= 20.20 ? 0x90 : 0x88;
 	ServerOffsets::FFrame__PropertyChainForCompiledIn = Version::Fortnite_Version >= 20.20 ? 0x88 : 0x80;
@@ -11507,6 +11530,8 @@ void Finder::SetupOffsets() {
 	FindFSpecialActorInitData_Destructor();
 
 	FindAFortSpecialActorReplicationInfo_AddActorToReplicationList();
+
+	FindAFortAIDirector_StartEncounterWithoutObjective();
 
 	return;
 }

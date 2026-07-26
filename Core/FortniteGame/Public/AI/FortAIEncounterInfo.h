@@ -1,0 +1,185 @@
+#pragma once
+#include "pch.h"
+
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/Object.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/ScriptDelegates.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/WeakObjectPtr.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/Templates/SubclassOf.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/CurveTable.h"
+#include "Engine/Source/Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "Engine/Source/Runtime/Core/Public/Containers/Map.h"
+#include "Engine/Source/Runtime/GameplayTags/Classes/GameplayTagContainer.h"
+
+#include "UtilityTypeFloatPair.h"
+#include "FortAIEncounterPIDController.h"
+#include "FortEncounterPawnNumberCaps.h"
+#include "FortAIEncounterSpawnGroupCapsProfile.h"
+#include "FortAIEncounterSpawnGroupCapsCategory.h"
+#include "FortAIEncounterSpawnPointsProfile.h"
+#include "FortAISpawnGroupUpgradeData.h"
+#include "FortAIBaseLootDropRow.h"
+#include "FortAILootDropModifierRow.h"
+#include "FortIntensityCurveSequenceInstanceInfo.h"
+#include "FortSpawnPointsPercentageCurveSequenceInstanceInfo.h"
+#include "FortAIEncounterWaveProgressEstimation.h"
+#include "AIEncounterSpawnGroupWeights.h"
+#include "SpawnGroupInstanceInfo.h"
+#include "FortGoalActorEncounterDataManagerPair.h"
+#include "FortEncounterSettings.h"
+#include "FortAISpawnerData.h"
+#include "FortAIEncounterTimedModifierTags.h"
+#include "EncounterEnvironmentQueryInfo.h"
+
+class ABuildingRift;
+class AFortAIDirector;
+class AFortGameplayMutator_AILevelVariance;
+class AFortGameplayMutator_AIEncounterModifierTags;
+class UCurveFloat;
+class UFortAIAssignment;
+class UFortAIAssignmentSettings;
+class UFortAIEncounterRiftManager;
+class UFortAISpawnGroupProgressionInfo;
+class UFortIntensityCurveSequenceProgression;
+
+using FExternalAISpawnerMap = TMap<TWeakObjectPtr<AActor>, FFortAISpawnerData>;
+
+class UFortAIEncounterInfo : public UObject {
+public:
+	DefineUnrealClass(UFortAIEncounterInfo);
+
+	DefineUProperty(UFortAISpawnGroupProgressionInfo*, SpawnGroupProgressionInfo);
+	DefineUProperty(FFortSpawnPointsPercentageCurveSequenceInstanceInfo, SpawnPointsPercentageCurveSequence);
+	DefineUProperty(FFortIntensityCurveSequenceInstanceInfo, IntensityCurveSequence);
+	DefineUProperty(float, BurstSpawnPointsPercentage);
+	DefineUProperty(float, SpawnPointsMultiplier);
+	DefineUProperty(bool, bUseBreathers);
+	DefineUProperty(FCurveTableRowHandle, LowPlayerPerformanceBreatherTimeSecondsCurve);
+	DefineUProperty(FCurveTableRowHandle, NormalPlayerPerformanceBreatherTimeSecondsCurve);
+	DefineUProperty(FCurveTableRowHandle, HighPlayerPerformanceBreatherTimeSecondsCurve);
+	DefineUProperty(float, EncounterTimeSeconds);
+	DefineUProperty(TArray<FUtilityTypeFloatPair>, LockedUtilityValues);
+	DefineUProperty(int32, NumFreeUtilities);
+	DefineUProperty(float, UtilityAdjustmentPeriodSeconds);
+	DefineUProperty(float, MinSpawnDistance);
+	DefineUProperty(float, MaxSpawnDistance);
+	DefineUProperty(int32, NumDirections);
+	DefineUProperty(bool, bChangeDirectionsOnRest);
+	DefineUProperty(float, SpawnPointsPercentageLimit);
+	DefineUProperty(int32, PawnNumberLimit);
+	DefineUProperty(FFortEncounterPawnNumberCaps, PawnNumberCaps);
+	DefineUProperty(float, SpawningIntervalSeconds);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterSpawnDirectionsChosen);
+	DefineUProperty(float, NextRiftReplacementTime);
+	DefineUProperty(float, NextSpawningTime);
+	DefineUProperty(FFortAIEncounterSpawnGroupCapsProfile, EncounterSpawnGroupCapsProfile);
+	DefineUProperty(TArray<FFortAIEncounterSpawnGroupCapsCategory>, AdditionalSpawnGroupCapsCategories);
+	DefineUProperty(FFortAIEncounterSpawnPointsProfile, EncounterSpawnPointsProfile);
+	DefineUProperty(TArray<FFortAISpawnGroupUpgradeData>, AvailableUpgrades);
+	DefineUProperty(TArray<FCurveTableRowHandle>, PawnDifficultyLevelModifiers);
+	DefineUProperty(TArray<FFortAIBaseLootDropRow>, BaseLootDropRows);
+	DefineUProperty(TArray<FFortAILootDropModifierRow>, LootDropModifierRows);
+	DefineUProperty(bool, bRequiresReinitializationFromProfile);
+	DefineUProperty(FCurveTableRowHandle, DesiredHostilityCurve);
+	DefineUProperty(UFortIntensityCurveSequenceProgression*, IntensitySequenceProgression);
+	DefineUProperty(float, AliveMultiplier);
+	DefineUProperty(uint8, SpawnLimitType);
+	DefineUProperty(int32, SpawnLimit);
+	DefineUProperty(int32, PawnNumberLimitProgress);
+	DefineUProperty(int32, SpawnPointsLimitProgress);
+	DefineUProperty(bool, bSpawnLimitReached);
+	DefineUProperty(bool, bHasSpawnedAllBurstSpawnAI);
+	DefineUProperty(bool, bOverrideAliveCounts);
+	DefineUProperty(int32, MinAliveOverride);
+	DefineUProperty(int32, MaxAliveOverride);
+	DefineUProperty(float, HostilityThreshold);
+	DefineUProperty(float, PeakTimeSeconds);
+	DefineUProperty(float, BreatherTimeSeconds);
+	DefineUProperty(float, MaxRampTimeSeconds);
+	DefineUProperty(float, MinTimeBetweenBreathesSeconds);
+	DefineUProperty(float, MaxFadeTimeSeconds);
+	DefineUProperty(float, FadeEndIntensity);
+	DefineUProperty(float, FadeEndRemainingSpawnPointsPercentage);
+	DefineUProperty(float, CompletionPercentageToDisableBreathers);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterAllEnemiesKilled);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterEnemySpawned);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterCompleted);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterPawnDied);
+	DefineUProperty(bool, bDisplayThreatVisuals);
+	DefineUProperty(FGameplayTagContainer, InjectedTagForUtilityCheck);
+	DefineUProperty(float, MaxLargeSpawnGroupDiscountInterval);
+	DefineUProperty(float, MaxSelectionToSpawningDelay);
+	DefineUProperty(TArray<FUtilityTypeFloatPair>, CurrentDesiredUtilities);
+	DefineUProperty(FCurveTableRowHandle, UtilityEffectivenessMultiplierCurve);
+	DefineUProperty(float, UtilityEffectivenessInfluenceCap);
+	DefineUProperty(TArray<FUtilityTypeFloatPair>, CurrentTopUtilityPercentages);
+	DefineUProperty(TArray<uint8>, UsedTopUtilities);
+	DefineUProperty(int32, NumUtilitiesConsidered);
+	DefineUProperty(float, ReactivityPercentage);
+	DefineUProperty(bool, bAdjustUtilitiesDuringRest);
+	DefineUProperty(bool, bDespawnAIsDuringRest);
+	DefineUProperty(float, LastPlayerCombatFactorUpdateTime);
+	DefineUProperty(float, LastUtilityAdjustTime);
+	DefineUProperty(float, LastSpawnPointAdjustmentTime);
+	DefineUProperty(float, LastLargeGroupSpawnTime);
+	DefineUProperty(TArray<FAIEncounterSpawnGroupWeights>, EnemySpawnData);
+	DefineUProperty(FFortAIEncounterPIDController, EncounterPIDController);
+	DefineUProperty(int32, CurrentSpawnPointsCap);
+	DefineUProperty(int32, CurrentSpawnPointsUsed);
+	DefineUProperty(int32, FailSafeMinSpawnPoints);
+	DefineUProperty(TArray<FSpawnGroupInstanceInfo>, ActiveSpawnGroups);
+	DefineUProperty(float, EncounterEngagementDistance);
+	DefineUProperty(float, MinRelevantBuildingDamagedDistance);
+	DefineUProperty(float, MaxRelevantBuildingDamagedDistance);
+	DefineUProperty(AActor*, CurrentGroupSpawnPoint);
+	DefineUProperty(uint8, EncounterState);
+	DefineUProperty(uint8, PacingState);
+	DefineUProperty(float, LastPacingStateTransitionTime);
+	DefineUProperty(FFortAIEncounterWaveProgressEstimation, WaveProgressEstimate);
+	DefineUProperty(float, DesiredDifficultyLevel);
+	DefineUProperty(float, DifficultyLevelOverride);
+	DefineUProperty(AFortAIDirector*, MyAIDirector);
+	DefineUProperty(TArray<FFortGoalActorEncounterDataManagerPair>, DataManagers);
+	DefineUProperty(AActor*, TargetObjective);
+	DefineUProperty(bool, bOnlyActiveAtNight);
+	DefineUProperty(int32, NumRiftsToUse);
+	DefineUProperty(int32, MinRiftsToUse);
+	DefineUProperty(int32, NumRiftsUsed);
+	DefineUProperty(FFortEncounterSettings, EncounterSettings);
+	DefineUProperty(float, EncounterStartTime);
+	DefineUProperty(float, HostilityCurveStartTime);
+	DefineUProperty(FEncounterEnvironmentQueryInfo, DefaultEnvironmentQueryInfo);
+	DefineUProperty(FEncounterEnvironmentQueryInfo, FallbackEnvironmentQueryInfo);
+	DefineUProperty(FEncounterEnvironmentQueryInfo, OverrideEnvironmentQueryInfo);
+	DefineUProperty(FEncounterEnvironmentQueryInfo, CurrentEnvironmentQueryInfo);
+	DefineUProperty(bool, bNukeWavesAtDaybreak);
+	DefineUProperty(bool, bNukeWavesAtEncounterEnd);
+	DefineUProperty(bool, bNukeWavesAtEncounterDeactivation);
+	DefineUProperty(int32, ActiveEnemyCap);
+	DefineUProperty(float, CurrentHostilityLevel);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterRampStarted);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterPeakStarted);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterFadeStarted);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterRestStarted);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterCombatParticipation);
+	DefineUProperty(FMulticastScriptDelegate, OnEncounterOptionsChanged);
+	DefineUProperty(TSubclassOf<ABuildingRift>, RiftClassTemplate);
+	DefineUProperty(FExternalAISpawnerMap, ExternalAISpawners);
+	DefineUProperty(UFortAIEncounterRiftManager*, RiftManager);
+	DefineUProperty(FString, AssociatedMissionName);
+	DefineUProperty(uint8, AssociatedMissionType);
+	DefineBitfieldUProperty(bCanBeActive);
+	DefineUProperty(TArray<UFortAIAssignment*>, EncounterAssignments);
+	DefineUProperty(UFortAIAssignmentSettings*, DefaultEncounterAssignmentSettings);
+	DefineUProperty(int32, MaxActiveAlive);
+	DefineUProperty(int32, MaxSpawnPointsUsed);
+	DefineUProperty(UCurveFloat*, OverrideSpawnPointsCurve);
+	DefineUProperty(bool, bUseAILifespans);
+	DefineUProperty(bool, bTrackCombatParticipation);
+	DefineUProperty(FGameplayTagContainer, ModifierTags);
+	DefineUProperty(TArray<FFortAIEncounterTimedModifierTags>, TimedModifierTags);
+	DefineUProperty(FGameplayTagContainer, GameContextTags);
+	DefineUProperty(AFortGameplayMutator_AILevelVariance*, AILevelMutator);
+	DefineUProperty(TArray<AFortGameplayMutator_AIEncounterModifierTags*>, EncounterModifierTagsMutators);
+public:
+	void NotifyNightStarted();
+};

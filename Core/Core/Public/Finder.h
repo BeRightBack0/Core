@@ -1110,6 +1110,8 @@ public:
 	static uintptr_t FindAFortGameStateAthena_LoadCurrentPlaylistData();
 
 	static uintptr_t FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad();
+
+	static uintptr_t FindAFortAIDirector_StartEncounterWithoutObjective();
 public:
 	static void SetupCoreOffsets();
 

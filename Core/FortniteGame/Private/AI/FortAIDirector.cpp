@@ -7,12 +7,43 @@
 
 void AFortAIDirector::Activate()
 {
-	static UFunction* Func = nullptr;
+	if (bNightActive)
+		return;
 
-	if (Func == nullptr)
-		Func = FindFunction("Activate");
+	NightCount++;
 
-	Call(Func);
+	const bool bNoActiveEncounters = ActiveEncounters.Num() == 0;
+
+	bNightActive = true;
+
+	if (bNoActiveEncounters) {
+		UClass* EncounterClass = DefaultNightEncounter.Class;
+		if (EncounterClass && EncounterClass->IsSubclassOf(UFortAIEncounterInfo::StaticClass())) {
+			ActiveDefaultEncounter = StartEncounterWithoutObjective(DefaultNightEncounter);
+		}
+	}
+
+	for (int32 i = 0; i < ActiveEncounters.Num(); ++i)
+	{
+		if (UFortAIEncounterInfo* Encounter = ActiveEncounters[i])
+		{
+			Encounter->NotifyNightStarted();
+		}
+	}
+}
+
+UFortAIEncounterInfo* AFortAIDirector::StartEncounterWithoutObjective(TSubclassOf<UFortAIEncounterInfo> EncounterTemplate)
+{
+	UFortAIEncounterInfo* (*StartEncounterWithoutObjectiveInternal)(AFortAIDirector*, TSubclassOf<UFortAIEncounterInfo>) =
+		decltype(StartEncounterWithoutObjectiveInternal)(ImageBase + Finder::FindAFortAIDirector_StartEncounterWithoutObjective());
+
+	return StartEncounterWithoutObjectiveInternal(this, EncounterTemplate);
+}
+
+void AFortAIDirector::execActivate(AFortAIDirector* Context, FFrame& Stack) {
+	Stack.IncrementCode();
+	
+	Context->Activate();
 }
 
 AFortAIDirector* AFortAIDirector::GetCurrent(UObject* WorldContextObject) {
@@ -38,6 +69,8 @@ AFortAIDirector* AFortAIDirector::GetCurrent(UObject* WorldContextObject) {
 }
 
 void AFortAIDirector::Hook() {
+	ExecHook("Function /Script/FortniteGame.FortAIDirector.Activate", execActivate);
+
 	{
 		uintptr_t EncounterSequence = StubCallsites::FromString(L"Could not create encounter sequence with given tags: %s, generated sequence not found");
 		uintptr_t Stub = StubCallsites::ResolveStub(EncounterSequence);

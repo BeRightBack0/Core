@@ -332,5 +332,18 @@ inline bool FGameplayTag::MatchesAnyExact(const FGameplayTagContainer& Container
 	return ContainerToCheck.GameplayTags.Contains(*this);
 }
 
+struct FGameplayTagQuery {
+public:
+	DefineUnrealStruct(FGameplayTagQuery);
+
+	DefineStructProperty(int32, TokenStreamVersion);
+	DefineStructProperty(TArray<FGameplayTag>, TagDictionary);
+	DefineStructProperty(TArray<uint8>, QueryTokenStream);
+	DefineStructProperty(FString, UserDescription);
+	DefineStructProperty(FString, AutoDescription);
+public:
+	uint8 Padding[0x48];
+};
+
 static_assert(sizeof(FGameplayTag) == 0x8, "FGameplayTag layout broke: single FName expected (0x8)");
 static_assert(sizeof(FGameplayTagContainer) == 0x20, "FGameplayTagContainer layout broke: GameplayTags + ParentTags arrays expected (0x20)");
