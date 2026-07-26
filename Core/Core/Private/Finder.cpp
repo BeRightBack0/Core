@@ -3012,6 +3012,9 @@ uintptr_t Finder::FindAGameMode_AddInactivePlayer() {
 	if (!Addr) {
 		Addr = Memcury::Scanner::FindPattern("48 89 4C 24 ? 53 56 57 41 56 48 83 EC ? ? ? ? 49 8B F0").Get();
 	}
+	if (!Addr) {
+		Addr = Memcury::Scanner::FindPattern("48 89 4C 24 ? 53 56 57 41 57").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::AGameMode_AddInactivePlayer = Addr - ImageBase;
@@ -5594,6 +5597,9 @@ uintptr_t Finder::FindFRotator_Quaternion() {
 	if (!Addr) {
 		Addr = Memcury::Scanner::FindPattern("48 83 EC ? F3 0F 10 41 ? 0F 57 C9 F3 0F 10 51 ? F3 0F 10 19").Get();
 	}
+	if (!Addr) {
+		Addr = Memcury::Scanner::FindPattern("48 83 EC ? F3 0F 10 41 ? 0F 57 C9").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::FRotator_Quaternion = Addr - ImageBase;
@@ -5827,22 +5833,8 @@ uintptr_t Finder::FindAFortPickup_SetPickupTarget() {
 	if (!sRef.IsValid())
 		sRef = Memcury::Scanner::FindStringRef(L"Attempted to spawn non-world item %s!", false, 0, Version::Fortnite_Version >= 17, false);
 
-	for (int i = 0; i < 0x1500; i++)
-	{
-		auto Ptr = (uint8_t*)(sRef.Get() - i);
-
-		if (*Ptr == 0x40 && (*(Ptr + 1) == 0x53 || *(Ptr + 1) == 0x55)) {
-			Addr = uint64_t(Ptr);
-			break;
-		}
-		else if (*Ptr == 0x48 && *(Ptr + 1) == 0x8B && *(Ptr + 2) == 0xC4) {
-			Addr = uint64_t(Ptr);
-			break;
-		}
-		else if (*Ptr == 0x4C && *(Ptr + 1) == 0x8B && *(Ptr + 2) == 0xDC) {
-			Addr = uint64_t(Ptr);
-			break;
-		}
+	if (sRef.IsValid()) {
+		Addr = sRef.FindFunctionStart().Get();
 	}
 	
 	if (Addr) {
@@ -6006,6 +5998,10 @@ uintptr_t Finder::FindAFortPickup_SetPickupItems() {
 
 		if (!Addr) {
 			Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC ? 80 B9 ? ? ? ? ? 45 0F B6 F1").Get();
+		}
+
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 48 83 EC ? 80 B9 ? ? ? ? ? 41 0F B6 D9").Get();
 		}
 	}
 	else if (Version::Engine_Version == 4.22) {
@@ -7067,6 +7063,11 @@ uintptr_t Finder::FindUWorld__TimeSeconds() {
 		uintptr_t addr = straddr - i;
 
 		if (*(uint8*)(addr) == 0xF3 && *(uint8*)(addr + 1) == 0x0F && *(uint8*)(addr + 2) == 0x10)
+		{
+			ServerOffsets::UWorld__TimeSeconds = *(uint32_t*)(addr + 4);
+			break;
+		}
+		else if (*(uint8*)(addr) == 0xF3 && *(uint8*)(addr + 1) == 0x41 && *(uint8*)(addr + 2) == 0x0F)
 		{
 			ServerOffsets::UWorld__TimeSeconds = *(uint32_t*)(addr + 4);
 			break;
