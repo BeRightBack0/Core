@@ -3,7 +3,7 @@
 
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UnrealType.h"
 
-class UAthenaQuickChatBank;
+#include "AthenaQuickChatBank.h"
 
 struct FAthenaQuickChatActiveEntry {
 public:
@@ -17,17 +17,31 @@ public:
 	uint8 Padding[0x18];
 public:
 	UAthenaQuickChatBank* GetBank() const {
-		static UProperty* BankProperty = StaticStruct()->FindPropertyByName("Bank");
+		UStruct* Struct = StaticStruct();
+		if (!Struct) {
+			Log("FAthenaQuickChatActiveEntry::GetBank: AthenaQuickChatActiveEntry struct not found!");
+			return nullptr;
+		}
+
+		static UProperty* BankProperty = Struct->FindPropertyByName("Bank");
 		if (!BankProperty) {
 			Log("FAthenaQuickChatActiveEntry::GetBank: Bank property not found!");
 			return nullptr;
 		}
 
-		if (BankProperty->IsA(UObjectProperty::StaticClass())) {
-			UObjectProperty* ObjectProp = (UObjectProperty*)BankProperty;
-			return GetFromOffset<UAthenaQuickChatBank*>(this, ObjectProp->Offset_Internal);
+		// Only a plain object property stores the pointer inline. Bank is a TWeakObjectPtr, which holds an
+		// object index and a serial number instead, so reading those 8 bytes as a pointer gives a wild
+		// address made of the two halves.
+		UObject* Object = nullptr;
+		if (BankProperty->IsA(CASTCLASS_FObjectProperty)) {
+			Object = GetFromOffset<UObject*>(this, BankProperty->Offset_Internal);
+		}
+		else {
+			Object = Bank.Get();
 		}
 
-		return Bank.Get();
+		// The entry is filled in from a client RPC, so the bank is whatever object reference the client
+		// felt like sending. Anything that is not really a bank would have its memory read as ChatOptions.
+		return Object ? Object->Cast<UAthenaQuickChatBank>() : nullptr;
 	}
 };

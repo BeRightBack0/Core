@@ -67,7 +67,12 @@ public:
 		if (!Item || Item->SerialNumber != ObjectSerialNumber)
 			return nullptr;
 
-		return (UObject*)Item->Object;
+		UObject* Object = (UObject*)Item->Object;
+
+		if (!Object || Object->InternalIndex != ObjectIndex)
+			return nullptr;
+
+		return Object;
 	}
 
 	const UObject* operator->() const

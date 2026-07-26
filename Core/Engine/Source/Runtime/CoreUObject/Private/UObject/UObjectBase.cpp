@@ -25,8 +25,13 @@ bool UObjectBase::IsValidLowLevelFast(bool bRecursive) const
 
 std::string UObjectBase::GetFullName() const
 {
+	if (!this)
+	{
+		return "None";
+	}
+
 	UClass* Class = GetClass();
-	if (this && Class)
+	if (Class)
 	{
 		std::string Temp;
 
@@ -57,6 +62,10 @@ std::string UObjectBase::GetFullName() const
 
 bool UObjectBase::IsA(EClassCastFlags TypeFlags) const
 {
+	if (!this || !ClassPrivate) {
+		return false;
+	}
+
 	return (ClassPrivate->GetCastFlags() & TypeFlags);
 }
 
@@ -71,12 +80,12 @@ bool UObjectBase::IsA(UClass* TypeClass) const
 	}
 
 	if (!IsValidLowLevelFast()) {
-		Log("IsA: Object is not valid: " + GetFullName());
+		Log("IsA: Object is not valid: 0x" + std::format("{:X}", (uintptr_t)this));
 		return false;
 	}
 
 	if (!GetClass()) {
-		Log("IsA: Object has no class: " + GetFullName());
+		Log("IsA: Object has no class: 0x" + std::format("{:X}", (uintptr_t)this));
 		return false;
 	}
 

@@ -93,11 +93,17 @@ public:
 
 	FUObjectItem const* GetObjectPtr(int32 Index) const
 	{
+		if (!Objects || !IsValidIndex(Index))
+			return nullptr;
+
 		return &Objects[Index];
 	}
 
 	FUObjectItem* GetObjectPtr(int32 Index)
 	{
+		if (!Objects || !IsValidIndex(Index))
+			return nullptr;
+
 		return &Objects[Index];
 	}
 
@@ -169,22 +175,45 @@ public:
 
 	FUObjectItem const* GetObjectPtr(int32 Index) const
 	{
+		if (!Objects || !IsValidIndex(Index))
+			return nullptr;
+
 		const int32 PerChunk = GetNumElementsPerChunk();
+		if (PerChunk <= 0)
+			return nullptr;
+
 		const int32 ChunkIndex = Index / PerChunk;
 		const int32 WithinChunkIndex = Index % PerChunk;
+
+		if (ChunkIndex >= NumChunks)
+			return nullptr;
+
 		FUObjectItem* Chunk = Objects[ChunkIndex];
+		if (!Chunk)
+			return nullptr;
+
 		return Chunk + WithinChunkIndex;
 	}
 	FUObjectItem* GetObjectPtr(int32 Index)
 	{
-		if (Index < 0 || Index > Capacity())
+		if (!Objects || !IsValidIndex(Index))
 			return nullptr;
 
 		const int32 PerChunk = GetNumElementsPerChunk();
+		if (PerChunk <= 0)
+			return nullptr;
+
 		const int32 ChunkIndex = Index / PerChunk;
 		const int32 WithinChunkIndex = Index % PerChunk;
 
-		return Objects[ChunkIndex] + WithinChunkIndex;
+		if (ChunkIndex >= NumChunks)
+			return nullptr;
+
+		FUObjectItem* Chunk = Objects[ChunkIndex];
+		if (!Chunk)
+			return nullptr;
+
+		return Chunk + WithinChunkIndex;
 	}
 
 	FORCEINLINE FUObjectItem const& operator[](int32 Index) const

@@ -435,7 +435,8 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
         if (!bInitialized) \
         { \
             bInitialized = true; \
-            CachedDefaultObject = StaticClass()->GetDefaultObj(); \
+            UClass* Class = StaticClass(); \
+            CachedDefaultObject = Class ? Class->GetDefaultObj() : nullptr; \
         } \
         \
         return (__Class*)CachedDefaultObject; \
@@ -446,7 +447,8 @@ Ret UObject::Call(UFunction* Function, Args&&... args)
         static int32 Size = -1; \
         if (Size == -1) \
         { \
-            Size = StaticClass()->PropertiesSize; \
+            UClass* Class = StaticClass(); \
+            Size = Class ? Class->PropertiesSize : 0; \
             if (Size <= 0) \
             { \
                 Log("Failed to find size for " #__Class "!"); \

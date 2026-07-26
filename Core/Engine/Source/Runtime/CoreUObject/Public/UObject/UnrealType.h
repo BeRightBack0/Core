@@ -366,13 +366,15 @@ private: \
 public: \
     bool _Has##Name() const { \
         if (Name##_Offset == -2) { \
-            Name##_Offset = StaticClass()->GetPropertyOffset(#Name); \
+            UClass* Class = StaticClass(); \
+            Name##_Offset = Class ? (int32)Class->GetPropertyOffset(#Name) : -1; \
         } \
         return Name##_Offset != -1; \
     } \
     Type& _Get##Name() { \
         if (Name##_Offset == -2) { \
-            Name##_Offset = StaticClass()->GetPropertyOffset(#Name); \
+            UClass* Class = StaticClass(); \
+            Name##_Offset = Class ? (int32)Class->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             static Type dummy{}; \
@@ -382,7 +384,8 @@ public: \
     } \
     Type _Get##Name() const { \
         if (Name##_Offset == -2) { \
-            Name##_Offset = StaticClass()->GetPropertyOffset(#Name); \
+            UClass* Class = StaticClass(); \
+            Name##_Offset = Class ? (int32)Class->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             static Type dummy{}; \
@@ -392,7 +395,8 @@ public: \
     } \
     void _Set##Name(Type Value) { \
         if (Name##_Offset == -2) { \
-            Name##_Offset = StaticClass()->GetPropertyOffset(#Name); \
+            UClass* Class = StaticClass(); \
+            Name##_Offset = Class ? (int32)Class->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             return; \
@@ -408,9 +412,7 @@ public: \
     Type& _Get##Name() { \
         if (Name##_Offset == -2) { \
             UStruct* Struct = StaticStruct(); \
-            if (Struct) { \
-                Name##_Offset = Struct->GetPropertyOffset(#Name); \
-            } \
+            Name##_Offset = Struct ? (int32)Struct->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             static Type dummy{}; \
@@ -421,9 +423,7 @@ public: \
     Type& _Get##Name() const { \
         if (Name##_Offset == -2) { \
             UStruct* Struct = StaticStruct(); \
-            if (Struct) { \
-                Name##_Offset = Struct->GetPropertyOffset(#Name); \
-            } \
+            Name##_Offset = Struct ? (int32)Struct->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             static Type dummy{}; \
@@ -434,9 +434,7 @@ public: \
     void _Set##Name(Type Value) { \
         if (Name##_Offset == -2) { \
             UStruct* Struct = StaticStruct(); \
-            if (Struct) { \
-                Name##_Offset = Struct->GetPropertyOffset(#Name); \
-            } \
+            Name##_Offset = Struct ? (int32)Struct->GetPropertyOffset(#Name) : -1; \
         } \
         if (Name##_Offset == -1) { \
             return; \

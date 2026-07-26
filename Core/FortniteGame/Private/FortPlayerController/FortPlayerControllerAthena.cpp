@@ -455,12 +455,23 @@ void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage(AFortPlayerCon
 		return;
 	}
 
+	if (!QuickChatBank->_HasChatOptions()) {
+		Log("ServerPlaySquadQuickChatMessage: AthenaQuickChatBank has no ChatOptions property!");
+		return;
+	}
+
+	const int32 LeafEntrySize = FAthenaQuickChatLeafEntry::GetSize();
+	if (LeafEntrySize <= 0) {
+		Log("ServerPlaySquadQuickChatMessage: Failed to get the size of AthenaQuickChatLeafEntry!");
+		return;
+	}
+
 	if (!QuickChatBank->ChatOptions.IsValidIndex(ChatEntry.Index)) {
 		Log("ServerPlaySquadQuickChatMessage: ChatEntry index is out of bounds!");
 		return;
 	}
 
-	FAthenaQuickChatLeafEntry& LeafEntry = QuickChatBank->ChatOptions.GetWithSize(ChatEntry.Index, FAthenaQuickChatLeafEntry::GetSize());
+	FAthenaQuickChatLeafEntry& LeafEntry = QuickChatBank->ChatOptions.GetWithSize(ChatEntry.Index, LeafEntrySize);
 
 	ServerPlayEmoteItem(This, LeafEntry.EmojiItemDefinition, 0.f);
 
