@@ -10698,6 +10698,48 @@ uintptr_t Finder::FindAActor_PreInitializeComponents() {
 	return ServerOffsets::AActor_PreInitializeComponents;
 }
 
+uintptr_t Finder::FindFSpecialActorInitData_Constructor() {
+	if (ServerOffsets::FSpecialActorInitData_Constructor)
+		return ServerOffsets::FSpecialActorInitData_Constructor;
+
+	uintptr_t Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 33 FF 48 8D 05 ? ? ? ? 48 89 39 48 8B D9 48 89 79 ? 48 89 79 ? 48 89 79", false).Get();
+
+	if (Addr) {
+		ServerOffsets::FSpecialActorInitData_Constructor = Addr - ImageBase;
+	}
+
+	Log("FSpecialActorInitData_Constructor found at: 0x" + std::format("{:X}", ServerOffsets::FSpecialActorInitData_Constructor));
+	return ServerOffsets::FSpecialActorInitData_Constructor;
+}
+
+uintptr_t Finder::FindFSpecialActorInitData_Destructor() {
+	if (ServerOffsets::FSpecialActorInitData_Destructor)
+		return ServerOffsets::FSpecialActorInitData_Destructor;
+
+	uintptr_t Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B F9 48 8B 89 ? ? ? ? 48 85 C9 74 ? E8 ? ? ? ? 48 8B 9F ? ? ? ? 48 85 DB 74 ? 48 89 74 24 ? BE FF FF FF FF", false).Get();
+
+	if (Addr) {
+		ServerOffsets::FSpecialActorInitData_Destructor = Addr - ImageBase;
+	}
+
+	Log("FSpecialActorInitData_Destructor found at: 0x" + std::format("{:X}", ServerOffsets::FSpecialActorInitData_Destructor));
+	return ServerOffsets::FSpecialActorInitData_Destructor;
+}
+
+uintptr_t Finder::FindAFortSpecialActorReplicationInfo_AddActorToReplicationList() {
+	if (ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList)
+		return ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList;
+
+	uintptr_t Addr = Memcury::Scanner::FindPattern("40 56 41 56 48 81 EC 58 02 00 00 4C 8B 4A", false).Get();
+
+	if (Addr) {
+		ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList = Addr - ImageBase;
+	}
+
+	Log("AFortSpecialActorReplicationInfo_AddActorToReplicationList found at: 0x" + std::format("{:X}", ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList));
+	return ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList;
+}
+
 uintptr_t Finder::FindAActor_TickVFT() {
 	if (ServerOffsets::AActor_TickVFT)
 		return ServerOffsets::AActor_TickVFT;
@@ -11437,6 +11479,11 @@ void Finder::SetupOffsets() {
 	FindUActorComponent_RegisterComponentWithWorld();
 
 	FindAActor_TickVFT();
+
+	FindFSpecialActorInitData_Constructor();
+	FindFSpecialActorInitData_Destructor();
+
+	FindAFortSpecialActorReplicationInfo_AddActorToReplicationList();
 
 	return;
 }

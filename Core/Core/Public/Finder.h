@@ -1085,6 +1085,12 @@ public:
 
 	static uintptr_t FindAActor_TickVFT();
 
+	static uintptr_t FindFSpecialActorInitData_Constructor();
+
+	static uintptr_t FindFSpecialActorInitData_Destructor();
+
+	static uintptr_t FindAFortSpecialActorReplicationInfo_AddActorToReplicationList();
+
 	static uintptr_t FindAFortGameModeAthena_PlacePlayerOnTeam();
 
 	static uintptr_t FindAFortGameMode_PlacePlayerOnTeamVFT();

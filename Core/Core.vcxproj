@@ -558,6 +558,7 @@
     <ClCompile Include="FortniteGame\Private\FortManager\FortCheatManager.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortSpecialActor\FortSpecialActorReplicationInfo.cpp" />
     <ClCompile Include="FortniteGame\Private\FortAnalytics\FortAnalytics.cpp" />
     <ClCompile Include="FortniteGame\Private\FortGameInstance\FortGameInstance.cpp" />
     <ClCompile Include="FortniteGame\Private\FortGameMode\FortGameMode.cpp" />

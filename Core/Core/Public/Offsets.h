@@ -684,4 +684,9 @@ namespace ServerOffsets {
 	inline uintptr_t AFortMission_CreateEncounterSequence = 0;
 
 	inline uintptr_t ABuildingTrap_FinishTrigger = 0;
+
+	inline uintptr_t FSpecialActorInitData_Constructor = 0;
+	inline uintptr_t FSpecialActorInitData_Destructor = 0;
+
+	inline uintptr_t AFortSpecialActorReplicationInfo_AddActorToReplicationList = 0;
 }

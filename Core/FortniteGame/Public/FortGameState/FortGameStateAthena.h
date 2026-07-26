@@ -16,6 +16,7 @@ class UCurveTable;
 class AFortPlayerState;
 class AFortSafeZoneIndicator;
 class AFortAthenaMutator;
+class AFortSpecialActorReplicationInfo;
 
 class AFortGameStateAthena : public AFortGameStateZone {
 public:
@@ -39,6 +40,7 @@ public:
 	DefineUProperty(EAirCraftBehavior, AirCraftBehavior);
 	DefineUProperty(TArray<AFortAthenaAircraft*>, Aircrafts);
 	DefineUProperty(TArray<AFortAthenaMutator*>, GameplayMutators);
+	DefineUProperty(AFortSpecialActorReplicationInfo*, SpecialActorData);
 	DefineUProperty(uint8, GamePhase);
 	DefineUProperty(uint8, SafeZonePhase);
 	DefineUProperty(uint8, GamePhaseStep);

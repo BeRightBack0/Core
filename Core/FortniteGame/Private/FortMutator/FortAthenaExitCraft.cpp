@@ -5,6 +5,7 @@
 
 #include "FortniteGame/Public/FortMutator/FortAthenaMutator_Heist.h"
 #include "FortniteGame/Public/FortGameState/FortGameStateAthena.h"
+#include "FortniteGame/Public/FortSpecialActor/FortSpecialActorReplicationInfo.h"
 
 void AFortAthenaExitCraftSpawner::SpawnExitCraft(AFortAthenaExitCraftSpawner* This)
 {
@@ -14,6 +15,8 @@ void AFortAthenaExitCraftSpawner::SpawnExitCraft(AFortAthenaExitCraftSpawner* Th
 	UWorld* World = UWorld::GetWorld();
 	if (!World)
 		return;
+
+	AFortGameStateAthena* GameState = World->GameState ? World->GameState->Cast<AFortGameStateAthena>() : nullptr;
 
 	UFortAthenaExitCraftInfo* Info = This->ExitCraftInfo;
 	if (!Info) {
@@ -30,17 +33,10 @@ void AFortAthenaExitCraftSpawner::SpawnExitCraft(AFortAthenaExitCraftSpawner* Th
 	FVector SpawnLoc = This->K2_GetActorLocation();
 	FRotator SpawnRot = This->K2_GetActorRotation();
 
-	float ZOffset = 0.0f;
-	float TargetZOffset = 0.0f;
+	if (Info->_HasExitCraftInfo())
+		SpawnLoc.Z += Info->ExitCraftInfo.ExitCraftZOffset.Evaluate(0);
 
-	if (Info->_HasExitCraftInfo()) {
-		ZOffset = Info->ExitCraftInfo.ExitCraftZOffset.Evaluate(0);
-		TargetZOffset = Info->ExitCraftInfo.ExitCraftTargetZOffset.Evaluate(0);
-	}
-
-	SpawnLoc.Z += ZOffset;
-
-	AFortAthenaExitCraft* Craft = (AFortAthenaExitCraft*)World->SpawnActor(CraftClass, SpawnLoc, SpawnRot);
+	AFortAthenaExitCraft* Craft = (AFortAthenaExitCraft*)World->SpawnActorUnfinished(CraftClass, SpawnLoc, SpawnRot);
 	if (!Craft) {
 		Log("AFortAthenaExitCraftSpawner::SpawnExitCraft: failed to spawn " + CraftClass->GetName().ToString());
 		return;
@@ -49,12 +45,27 @@ void AFortAthenaExitCraftSpawner::SpawnExitCraft(AFortAthenaExitCraftSpawner* Th
 	if (!Craft->ExitCraftInfo)
 		Craft->ExitCraftInfo = Info;
 
-	Craft->CurrentState = EExitCraftState::GetSpawned();
-	Craft->OnNewState(EExitCraftState::GetSpawned());
-	Craft->OnRep_CurrentState();
-	Craft->ForceNetUpdate();
+	World->FinishSpawnActor(Craft, SpawnLoc, SpawnRot);
 
-	AFortGameStateAthena* GameState = World->GameState ? World->GameState->Cast<AFortGameStateAthena>() : nullptr;
+	AFortSpecialActorReplicationInfo* SpecialActorData = GameState ? GameState->SpecialActorData : nullptr;
+	if (SpecialActorData && Info->_HasSpecialActorCraftTag()
+		&& Info->_HasCraftMinimapIconBrush() && Info->_HasCraftCompassIconBrush()) {
+		FName CraftID = SpecialActorData->RegisterSpecialActor(
+			Craft,
+			Info->SpecialActorCraftTag,
+			Info->CraftMinimapIconBrush, Info->CraftMinimapIconScale,
+			Info->CraftCompassIconBrush, Info->CraftCompassIconScale
+		);
+
+		if (!CraftID.IsNone()) {
+			if (Craft->_HasCraftSpecialActorID())
+				Craft->CraftSpecialActorID = CraftID;
+
+			if (This->_HasSpawnerSpecialActorID() && !This->SpawnerSpecialActorID.IsNone())
+				SpecialActorData->RemoveSpecialActor(This->SpawnerSpecialActorID);
+		}
+	}
+
 	if (GameState) {
 		for (AFortAthenaMutator* Mutator : GameState->GameplayMutators) {
 			AFortAthenaMutator_Heist* Heist = Mutator ? Mutator->Cast<AFortAthenaMutator_Heist>() : nullptr;
@@ -70,16 +81,11 @@ void AFortAthenaExitCraftSpawner::SpawnExitCraft(AFortAthenaExitCraftSpawner* Th
 				}
 			}
 
-			// tell the mutator about the new exitcraft we spawned
 			Heist->OnExitCraftSpawned(Craft, This);
 		}
 	}
 
-	Log("AFortAthenaExitCraftSpawner::SpawnExitCraft: spawned " + Craft->GetName().ToString()
-		+ " at " + This->GetName().ToString()
-		+ " ZOffset=" + std::to_string((int32)ZOffset)
-		+ " hover=" + std::to_string((int32)TargetZOffset)
-		+ " state=" + std::to_string((int32)Craft->CurrentState));
+	This->K2_DestroyActor();
 }
 
 void AFortAthenaExitCraftSpawner::BeginPlay(AFortAthenaExitCraftSpawner* This)
@@ -90,8 +96,6 @@ void AFortAthenaExitCraftSpawner::BeginPlay(AFortAthenaExitCraftSpawner* This)
 		return;
 
 	This->StartExitCraftSpawnTimer();
-
-	Log("AFortAthenaExitCraftSpawner::BeginPlay: started spawn timer on " + This->GetName().ToString());
 }
 
 void AFortAthenaExitCraftSpawner::Hook()
