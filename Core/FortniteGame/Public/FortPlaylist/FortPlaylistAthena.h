@@ -10,6 +10,7 @@ class UFortPlaylistAthena : public UFortPlaylist {
 public:
 	DefineUnrealClass(UFortPlaylistAthena);
 
+	DefineUProperty(uint8, WinConditionType);
 	DefineUProperty(uint8, SafeZoneStartUp);
 	DefineUProperty(bool, bIsLargeTeamGame);
 	DefineUProperty(EAthenaRespawnType, RespawnType);

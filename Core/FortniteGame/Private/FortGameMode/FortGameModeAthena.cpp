@@ -397,3 +397,87 @@ void AFortGameModeAthena::PreInitializeComponents(AFortGameModeAthena* This) {
 		return;
 	}
 }
+void AFortGameModeAthena::SendEndOfMatchTo(AFortPlayerControllerAthena* PC)
+{
+	if (!PC)
+		return;
+
+	if (FAthenaRewardResult::StaticStruct())
+		PC->ClientSendEndBattleRoyaleMatchForPlayer(true, PC->ConstructAthenaRewardResult());
+
+	if (FAthenaMatchStats::StaticStruct())
+		PC->ClientSendMatchStatsForPlayer(PC->ConstructAthenaMatchStats());
+
+	if (FAthenaMatchTeamStats::StaticStruct())
+		PC->ClientSendTeamStatsForPlayer(PC->ConstructAthenaMatchTeamStats());
+}
+
+bool AFortGameModeAthena::StartEndGamePhase(AFortGameModeAthena* This, AFortPlayerControllerAthena* WinningPlayer, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause)
+{
+	bool bResult = StartEndGamePhaseOG(This, WinningPlayer, FinisherPawn, FinishingWeapon, DeathCause);
+
+	AFortPlayerStateAthena* WinnerState = WinningPlayer && WinningPlayer->PlayerState
+		? WinningPlayer->PlayerState->Cast<AFortPlayerStateAthena>() : nullptr;
+	if (!WinnerState)
+		return bResult;
+
+	AFortGameStateAthena* GameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
+	if (GameState) {
+		GameState->WinningPlayerName = WinnerState->GetPlayerName();
+		GameState->OnRep_WinningPlayerName();
+	}
+
+	if (!WinnerState->PlayerTeam) {
+		WinnerState->bHasWonAGame = true;
+		SendEndOfMatchTo(WinningPlayer);
+		return bResult;
+	}
+
+	for (AController* TeamMember : WinnerState->PlayerTeam->TeamMembers) {
+		AFortPlayerControllerAthena* TeamMemberController = TeamMember ? TeamMember->Cast<AFortPlayerControllerAthena>() : nullptr;
+		if (!TeamMemberController)
+			continue;
+
+		AFortPlayerStateAthena* TeamMemberState = TeamMemberController->PlayerState
+			? TeamMemberController->PlayerState->Cast<AFortPlayerStateAthena>() : nullptr;
+		if (TeamMemberState)
+			TeamMemberState->bHasWonAGame = true;
+
+		if (TeamMemberController != WinningPlayer)
+			TeamMemberController->ClientNotifyTeamWon(FinisherPawn, FinishingWeapon, DeathCause);
+
+		SendEndOfMatchTo(TeamMemberController);
+	}
+
+	return bResult;
+}
+
+bool AFortGameModeAthena::StartEndGamePhaseTeam(AFortGameModeAthena* This, int32 TeamIndex, APlayerState* PlayerState, int32 Place, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause)
+{
+	bool bResult = StartEndGamePhaseTeamOG(This, TeamIndex, PlayerState, Place, FinisherPawn, FinishingWeapon, DeathCause);
+
+	AFortTeamInfo* Team = nullptr;
+
+	AFortGameStateAthena* GameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
+	if (GameState) {
+		for (AFortTeamInfo* TeamInfo : GameState->Teams) {
+			if (TeamInfo && TeamInfo->Team == TeamIndex) {
+				Team = TeamInfo;
+				break;
+			}
+		}
+	}
+
+	if (!Team) {
+		AFortPlayerStateAthena* InstigatorState = PlayerState ? PlayerState->Cast<AFortPlayerStateAthena>() : nullptr;
+		Team = InstigatorState ? InstigatorState->PlayerTeam : nullptr;
+	}
+
+	if (!Team)
+		return bResult;
+
+	for (AController* TeamMember : Team->TeamMembers)
+		SendEndOfMatchTo(TeamMember ? TeamMember->Cast<AFortPlayerControllerAthena>() : nullptr);
+
+	return bResult;
+}

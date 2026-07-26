@@ -433,6 +433,18 @@ public:
 	DefineEnumProperty(InfiniteRespawnExceptStorm);
 };
 
+class EAthenaWinCondition {
+public:
+	DefineUnrealEnum(EAthenaWinCondition);
+
+	DefineEnumProperty(LastManStanding);
+	DefineEnumProperty(LastManStandingIncludingAllies);
+	DefineEnumProperty(TimedTeamFinalFight);
+	DefineEnumProperty(FirstToGoalScore);
+	DefineEnumProperty(TimedLastMenStanding);
+	DefineEnumProperty(MutatorControlled);
+};
+
 class EAirCraftBehavior {
 public:
 	DefineUnrealEnum(EAirCraftBehavior);

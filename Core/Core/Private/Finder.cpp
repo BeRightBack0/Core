@@ -4899,29 +4899,49 @@ uintptr_t Finder::FindAFortGameModeAthena_IsSafeZoneAllowed() {
 }
 
 uintptr_t Finder::FindAFortGameModeAthena_StartEndGamePhase() {
-	static uintptr_t Addr = 0;
 	if (ServerOffsets::AFortGameModeAthena_StartEndGamePhase)
 		return ServerOffsets::AFortGameModeAthena_StartEndGamePhase;
-	Addr = Memcury::Scanner::FindPattern("48 8B C4 4C 89 48 ? 4C 89 40 ? 55 41 56 48 8D 68").Get();
-	if (Addr) {
-		ServerOffsets::AFortGameModeAthena_StartEndGamePhase = Addr - ImageBase;
-		Log("AFortGameModeAthena_StartEndGamePhase found at: 0x" + std::format("{:X}", ServerOffsets::AFortGameModeAthena_StartEndGamePhase));
-		return ServerOffsets::AFortGameModeAthena_StartEndGamePhase;
+
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: %s won the match!", false);
+	if (StringAddr.IsValid()) {
+		uintptr_t Addr = StringAddr.FindFunctionStart().Get();
+
+		if (Addr)
+			ServerOffsets::AFortGameModeAthena_StartEndGamePhase = Addr - ImageBase;
 	}
-	return 0;
+
+	if (!ServerOffsets::AFortGameModeAthena_StartEndGamePhase) {
+		uintptr_t Addr = Memcury::Scanner::FindPattern("48 8B C4 4C 89 48 ? 4C 89 40 ? 55 41 56 48 8D 68", false).Get();
+
+		if (Addr)
+			ServerOffsets::AFortGameModeAthena_StartEndGamePhase = Addr - ImageBase;
+	}
+
+	Log("AFortGameModeAthena_StartEndGamePhase found at: 0x" + std::format("{:X}", ServerOffsets::AFortGameModeAthena_StartEndGamePhase));
+	return ServerOffsets::AFortGameModeAthena_StartEndGamePhase;
 }
 
 uintptr_t Finder::FindAFortGameModeAthena_StartEndGamePhaseTeam() {
-	static uintptr_t Addr = 0;
 	if (ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam)
 		return ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam;
-	Addr = Memcury::Scanner::FindPattern("89 54 24 ? 55 41 54 41 56 41 57 48 81 EC").Get();
-	if (Addr) {
-		ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam = Addr - ImageBase;
-		Log("AFortGameModeAthena_StartEndGamePhaseTeam found at: 0x" + std::format("{:X}", ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam));
-		return ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam;
+
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Team %d placed %d!", false);
+	if (StringAddr.IsValid()) {
+		uintptr_t Addr = StringAddr.FindFunctionStart().Get();
+
+		if (Addr)
+			ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam = Addr - ImageBase;
 	}
-	return 0;
+
+	if (!ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam) {
+		uintptr_t Addr = Memcury::Scanner::FindPattern("89 54 24 ? 53 56 41 54 41 56", false).Get();
+
+		if (Addr)
+			ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam = Addr - ImageBase;
+	}
+
+	Log("AFortGameModeAthena_StartEndGamePhaseTeam found at: 0x" + std::format("{:X}", ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam));
+	return ServerOffsets::AFortGameModeAthena_StartEndGamePhaseTeam;
 }
 
 uintptr_t Finder::FindAFortGameModeAthena_CreateAIDirector() {
@@ -11479,6 +11499,9 @@ void Finder::SetupOffsets() {
 	FindUActorComponent_RegisterComponentWithWorld();
 
 	FindAActor_TickVFT();
+
+	FindAFortGameModeAthena_StartEndGamePhase();
+	FindAFortGameModeAthena_StartEndGamePhaseTeam();
 
 	FindFSpecialActorInitData_Constructor();
 	FindFSpecialActorInitData_Destructor();

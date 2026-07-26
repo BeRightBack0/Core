@@ -68,6 +68,14 @@ public:
 	static inline void (*PreInitializeComponentsOG)(AFortGameModeAthena* This);
 	static void PreInitializeComponents(AFortGameModeAthena* This);
 
+	static void SendEndOfMatchTo(AFortPlayerControllerAthena* PC);
+
+	static inline bool (*StartEndGamePhaseOG)(AFortGameModeAthena* This, AFortPlayerControllerAthena* WinningPlayer, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause);
+	static bool StartEndGamePhase(AFortGameModeAthena* This, AFortPlayerControllerAthena* WinningPlayer, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause);
+
+	static inline bool (*StartEndGamePhaseTeamOG)(AFortGameModeAthena* This, int32 TeamIndex, APlayerState* PlayerState, int32 Place, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause);
+	static bool StartEndGamePhaseTeam(AFortGameModeAthena* This, int32 TeamIndex, APlayerState* PlayerState, int32 Place, APawn* FinisherPawn, const UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause);
+
 	static void Hook() {
 		//MH_CreateHook((LPVOID)(ImageBase + Finder::FindAFortGameModeAthena_ReadyToStartMatch()), ReadyToStartMatch, (LPVOID*)&ReadyToStartMatchOG);
 		HookEveryVTable(
@@ -127,6 +135,22 @@ public:
 			PreInitializeComponents,
 			(LPVOID*)&PreInitializeComponentsOG
 		);
+
+		if (Finder::FindAFortGameModeAthena_StartEndGamePhase()) {
+			MH_CreateHook(
+				(LPVOID)(ImageBase + Finder::FindAFortGameModeAthena_StartEndGamePhase()),
+				StartEndGamePhase,
+				(LPVOID*)&StartEndGamePhaseOG
+			);
+		}
+
+		if (Finder::FindAFortGameModeAthena_StartEndGamePhaseTeam()) {
+			MH_CreateHook(
+				(LPVOID)(ImageBase + Finder::FindAFortGameModeAthena_StartEndGamePhaseTeam()),
+				StartEndGamePhaseTeam,
+				(LPVOID*)&StartEndGamePhaseTeamOG
+			);
+		}
 
 		Log("Hooked AFortGameModeAthena");
 	}

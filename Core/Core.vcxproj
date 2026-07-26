@@ -343,6 +343,7 @@
     <ClInclude Include="FortniteGame\Public\FortMutator\FortGameplayMutator.h" />
     <ClInclude Include="FortniteGame\Public\FortPawn\FortAIPawn.h" />
     <ClInclude Include="FortniteGame\Public\FortPlayerController\FortAIController.h" />
+    <ClInclude Include="FortniteGame\Public\FortSpecialActor\FortSpecialActorReplicationInfo.h" />
     <ClInclude Include="FortniteGame\Public\FortSupplyDrop\FortSupplyDropInfo.h" />
     <ClInclude Include="FortniteGame\Public\QuickChat\AthenaQuickChatActiveEntry.h" />
     <ClInclude Include="FortniteGame\Public\Athena\AthenaRewardResult.h" />
