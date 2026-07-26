@@ -38,6 +38,7 @@ public:
 	DefineUProperty(UAthenaBattleBusItemDefinition*, DefaultBattleBus);
 	DefineUProperty(AFortAthenaPlaylistBase*, FortAthenaPlaylistCDO);
 	DefineUProperty(EAirCraftBehavior, AirCraftBehavior);
+	DefineUProperty(bool, bUseSameDirectionForOpposingAircraft);
 	DefineUProperty(TArray<AFortAthenaAircraft*>, Aircrafts);
 	DefineUProperty(TArray<AFortAthenaMutator*>, GameplayMutators);
 	DefineUProperty(AFortSpecialActorReplicationInfo*, SpecialActorData);

@@ -54,10 +54,21 @@ void AFortGameStateAthena::SetCurrentPlaylistId(int InPlaylistId) {
 
 	UFortPlaylistAthena* Playlist = PlaylistManager->GetPlaylist(InPlaylistId);
 	if (Playlist) {
-		CurrentPlaylistData = Playlist;
+		if (_HasCurrentPlaylistInfo()) {
+			CurrentPlaylistInfo.SetBasePlaylist(Playlist);
+			CurrentPlaylistInfo.MarkArrayDirty();
+			OnRep_CurrentPlaylistInfo();
+		}
+		else if (_HasCurrentPlaylistData()) {
+			CurrentPlaylistData = Playlist;
+			OnRep_CurrentPlaylistData();
+		}
 
 		if (Playlist->_HasAirCraftBehavior())
 			AirCraftBehavior = Playlist->AirCraftBehavior;
+
+		if (_HasbUseSameDirectionForOpposingAircraft() && Playlist->_HasbUseSameDirectionForOpposingAircraft())
+			bUseSameDirectionForOpposingAircraft = Playlist->bUseSameDirectionForOpposingAircraft;
 
 		if (Playlist->AISettings) {
 			if (AFortGameModeAthena* GameMode = GetWorld()->AuthorityGameMode->Cast<AFortGameModeAthena>())

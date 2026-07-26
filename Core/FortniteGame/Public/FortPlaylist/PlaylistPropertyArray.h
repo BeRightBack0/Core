@@ -19,5 +19,14 @@ public:
 	DefineStructProperty(UFortPlaylistAthena*, BasePlaylist);
 	DefineStructProperty(UFortPlaylistAthena*, OverridePlaylist);
 public:
+	void SetBasePlaylist(UFortPlaylistAthena* Playlist)
+	{
+		PlaylistReplicationKey++;
+		BasePlaylist = Playlist;
+
+		if (PlaylistReplicationKey == -1)
+			PlaylistReplicationKey = 0;
+	}
+public:
 	uint8 Padding[0xE8];
 };

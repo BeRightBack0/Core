@@ -11533,5 +11533,7 @@ void Finder::SetupOffsets() {
 
 	FindAFortAIDirector_StartEncounterWithoutObjective();
 
+	FindABuildingFoundation_SelectAndSetupMyBuildingLevel();
+
 	return;
 }
