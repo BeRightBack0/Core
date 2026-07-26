@@ -110,18 +110,6 @@ bool AFortGameModeAthena::SetupPlaylist() {
 			FortGameState->TeamCount = Playlist->MaxTeamCount;
 		}
 
-		if (FortGameState->_HasCurrentPlaylistData()) {
-			FortGameState->CurrentPlaylistData = Playlist;
-			FortGameState->OnRep_CurrentPlaylistData();
-		}
-		if (FortGameState->_HasCurrentPlaylistInfo()) {
-			FortGameState->CurrentPlaylistInfo.BasePlaylist = Playlist;
-			FortGameState->CurrentPlaylistInfo.OverridePlaylist = Playlist;
-			FortGameState->CurrentPlaylistInfo.PlaylistReplicationKey++;
-			FortGameState->CurrentPlaylistInfo.MarkArrayDirty();
-			FortGameState->OnRep_CurrentPlaylistInfo();
-		}
-
 		SetCurrentPlaylistName(Playlist->GetPlaylistName());
 		SetCurrentPlaylistId(Playlist->GetPlaylistId());
 	}

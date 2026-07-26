@@ -57,11 +57,9 @@ void AFortGameStateAthena::SetCurrentPlaylistId(int InPlaylistId) {
 		if (_HasCurrentPlaylistInfo()) {
 			CurrentPlaylistInfo.SetBasePlaylist(Playlist);
 			CurrentPlaylistInfo.MarkArrayDirty();
-			OnRep_CurrentPlaylistInfo();
 		}
 		else if (_HasCurrentPlaylistData()) {
 			CurrentPlaylistData = Playlist;
-			OnRep_CurrentPlaylistData();
 		}
 
 		if (Playlist->_HasAirCraftBehavior())

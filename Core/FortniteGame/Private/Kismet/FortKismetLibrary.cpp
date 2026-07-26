@@ -118,6 +118,9 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorld(
 		return nullptr;
 	}
 
+	if (!ItemDefinition || NumberToSpawn <= 0)
+		return nullptr;
+
 	/*Log(
 		"UFortKismetLibrary::K2_SpawnPickupInWorld: Spawning Pickup for Item: "
 		+ ItemDefinition->GetName().ToString() +
