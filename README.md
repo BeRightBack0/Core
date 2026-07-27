@@ -19,8 +19,8 @@ Core runs inside Fortnite to provide server-side systems to load maps, apply pla
 
 | Fortnite version | Status |
 | --- | --- |
-| 1.7.2–6.10 | Full support ✅|
-| 6.20+ | Unsupported ⚠️|
+| 1.7.2–6.21 | Full support ✅|
+| 6.22+ | Unsupported ⚠️|
 
 - **Full support** means that a version is actively supported. We prioritize fixes and missing functionality for fully supported versions before adding support for other versions.
 - **Unsupported** means the build may start and have some gameplay features, but it may be unfinished, untested, or have gamebreaking bugs.
