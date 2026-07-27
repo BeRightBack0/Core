@@ -334,10 +334,6 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 		CheatManager->StartEncounter(Parser);
 		return;
 	}
-	else if (Parser.IsCommand("ConfigureEncounter")) {
-		CheatManager->ConfigureEncounter(Parser);
-		return;
-	}
 	else if (Parser.IsCommand("SetSpawnExitCraftTime")) {
 		CheatManager->SetSpawnExitCraftTime(Parser);
 		return;
