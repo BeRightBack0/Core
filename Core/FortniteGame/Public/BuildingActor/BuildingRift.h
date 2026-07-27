@@ -52,34 +52,6 @@ public:
 	void OnRep_RiftIsActive();
 
 	void OnRep_RiftIsVisible();
-public:
-	void OnPlaced();
-	static inline void (*execOnPlacedOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnPlaced(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnActivated();
-	static inline void (*execOnActivatedOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnActivated(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnDeactivated();
-	static inline void (*execOnDeactivatedOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnDeactivated(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnRemoved();
-	static inline void (*execOnRemovedOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnRemoved(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnSpawnAI();
-	static inline void (*execOnSpawnAIOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnSpawnAI(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnStartedEncounterSpawn(AFortAIPawn* SpawnedAI);
-	static inline void (*execOnStartedEncounterSpawnOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnStartedEncounterSpawn(ABuildingRift* Context, FFrame& Stack, void* Result);
-
-	void OnFinishedEncounterSpawn(AFortAIPawn* SpawnedAI);
-	static inline void (*execOnFinishedEncounterSpawnOG)(ABuildingRift* Context, FFrame& Stack, void* Result);
-	static void execOnFinishedEncounterSpawn(ABuildingRift* Context, FFrame& Stack, void* Result);
 
 	static void Hook();
 };
