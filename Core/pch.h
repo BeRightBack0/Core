@@ -268,6 +268,22 @@ struct _Pad_0x18
     uint8_t Padding[0x18];
 };
 
+static bool IsExecutableAddress(uintptr_t addr)
+{
+    if (addr < 0x10000)
+        return false;
+
+    MEMORY_BASIC_INFORMATION mbi{};
+    if (!VirtualQuery(reinterpret_cast<void*>(addr), &mbi, sizeof(mbi)))
+        return false;
+
+    if (mbi.State != MEM_COMMIT)
+        return false;
+
+    constexpr DWORD Executable = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+    return (mbi.Protect & Executable) != 0 && (mbi.Protect & PAGE_GUARD) == 0;
+}
+
 static bool IsAddressInModule(uintptr_t addr, HMODULE module)
 {
     MODULEINFO mi{};

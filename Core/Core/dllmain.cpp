@@ -67,8 +67,6 @@ DWORD Main(LPVOID)
     GWorld = reinterpret_cast<UWorld**>(ImageBase + ServerOffsets::GWorld);
     CoreGlobals::Init();
 
-    Finder::SetupCoreOffsets();
-
     Version::SetupVersion();
     Log(std::format("ImageBase: 0x{:X}", ImageBase).c_str());
     Log("FullVersion: " + Version::VersionString);
@@ -83,6 +81,8 @@ DWORD Main(LPVOID)
         }
     }
     Log(std::format("Fortnite CL: {}", Version::Fortnite_CL));
+
+    Finder::SetupCoreOffsets();
 
     if (Config.bIsClient) {
         Client::Init(Config);

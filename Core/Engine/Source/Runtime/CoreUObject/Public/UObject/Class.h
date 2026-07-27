@@ -159,10 +159,10 @@ public:
 
         auto Addr = ValidateRef.Get();
 
-        if (!Addr)
+        if (!Addr && IsExecutableAddress((uintptr_t)Func))
             Addr = Memcury::Scanner(Func).ScanFor({ 0x0F, 0x95 }).Get();
 
-        if (Addr)
+        if (IsExecutableAddress((uintptr_t)Addr))
             for (int i = 0; i < 2000; i++)
             {
                 if (*((uint8*)Addr + i) == 0xFF && (*((uint8*)Addr + i + 1) == 0x90 || *((uint8*)Addr + i + 1) == 0x93 || *((uint8*)Addr + i + 1) == 0xA0))

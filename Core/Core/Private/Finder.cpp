@@ -293,6 +293,9 @@ uintptr_t Finder::FindStaticLoadObject() {
 	if (!Addr)
 	{
 		auto String = Memcury::Scanner::FindStringRef(L"Calling StaticLoadObject during PostLoad may result in hitches during streaming.");
+		if (!String.IsValid()) {
+			String = Memcury::Scanner::FindStringRef(L"Calling StaticLoadObject during PostLoad of %s may result in hitches during streaming.");
+		}
 		if (String.IsValid()) {
 			Addr = String.FindFunctionStart().Get();
 		}
@@ -549,12 +552,34 @@ uintptr_t Finder::FindInternalServerTryActivateAbilityVFT() {
 	if (Version::Engine_Version > 4.20)
 	{
 		auto OnRep_ReplicatedAnimMontage = DefaultObj->FindFunction("OnRep_ReplicatedAnimMontage");
-		VTableIndex = OnRep_ReplicatedAnimMontage->GetVTableIndex() - 1;
+		if (!OnRep_ReplicatedAnimMontage) {
+			Log("Failed to find UAbilitySystemComponent::OnRep_ReplicatedAnimMontage.");
+			return 0;
+		}
+
+		auto Index = OnRep_ReplicatedAnimMontage->GetVTableIndex();
+		if (Index == (uint32)-1) {
+			Log("Failed to resolve the vtable index of UAbilitySystemComponent::OnRep_ReplicatedAnimMontage.");
+			return 0;
+		}
+
+		VTableIndex = Index - 1;
 	}
 	else
 	{
 		auto ServerTryActivateAbilityWithEventData = (UFunction*)FUObjectArray::FindObject("Function /Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData");
-		auto ServerTryActivateAbilityWithEventDataNativeAddr = __int64(DefaultObj->VTable[ServerTryActivateAbilityWithEventData->GetVTableIndex()]);
+		if (!ServerTryActivateAbilityWithEventData) {
+			Log("Failed to find UAbilitySystemComponent::ServerTryActivateAbilityWithEventData.");
+			return 0;
+		}
+
+		auto Index = ServerTryActivateAbilityWithEventData->GetVTableIndex();
+		if (Index == (uint32)-1) {
+			Log("Failed to resolve the vtable index of UAbilitySystemComponent::ServerTryActivateAbilityWithEventData.");
+			return 0;
+		}
+
+		auto ServerTryActivateAbilityWithEventDataNativeAddr = __int64(DefaultObj->VTable[Index]);
 
 		for (int i = 0; i < 400; i++)
 		{
@@ -576,7 +601,34 @@ uintptr_t Finder::FindUAbilitySystemComponent_GiveAbility() {
 	static uintptr_t Addr = 0;
 	if (ServerOffsets::UAbilitySystemComponent_GiveAbility)
 		return ServerOffsets::UAbilitySystemComponent_GiveAbility;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::UAbilitySystemComponent_GiveAbility;
 
+	if (Version::Engine_Version <= 4.20) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC 20 83 B9").Get();
+	}
+	else if (Version::Engine_Version == 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B E8 4C 8B F2").Get();
+	}
+	else if (Version::Engine_Version >= 5.3) {
+		Addr = Memcury::Scanner::FindPattern("40 55 53 56 57 41 54 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 49 8B 40 ? 45 33 E4").Get();
+	}
+	else if (Version::Engine_Version >= 5.0)
+	{
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC 20 8B 81 ? ? ? ? 49 8B E8 4C").Get();
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 56 41 57 48 8B EC 48 83 EC ? 49 8B 40").Get();
+		}
+
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC 30 49 8B 40 10 45 33 F6 49 8B E8 48 8B F2 48 8B").Get();
+		}
+	}
+
+	Memcury::Scanner addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 1, Version::Engine_Version >= 5.0);
+	Addr = addr.ScanFor({ 0xE8 }).RelativeOffset(1).Get();
+	
 	if (!Addr) {
 		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC ? 83 B9 ? ? ? ? ? 49 8B F0").Get();
 	}
@@ -586,6 +638,7 @@ uintptr_t Finder::FindUAbilitySystemComponent_GiveAbility() {
 		ServerOffsets::UAbilitySystemComponent_GiveAbility = Addr - ImageBase;
 	}
 
+	bInitialized = true;
 	Log("UAbilitySystemComponent::GiveAbility found at: 0x" + std::format("{:X}", ServerOffsets::UAbilitySystemComponent_GiveAbility));
 	return ServerOffsets::UAbilitySystemComponent_GiveAbility;
 }
@@ -967,13 +1020,16 @@ uintptr_t Finder::FindFName_ToStringOut() {
 	else if (Version::Engine_Version == 4.21) {
 		Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC ? 48 8B FA 4C 8B F1").Get();
 	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC ? 48 8B FA 4C 8B F1 E8").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::FName_ToStringOut = Addr - ImageBase;
 	}
 
 	if (!bInitialized) bInitialized = true;
-	Log("FName::ToStringOut found at: 0x" + std::format("{:X}", ServerOffsets::FName_ToStringOut));
+	Log("FName__ToStringOut found at: 0x" + std::format("{:X}", ServerOffsets::FName_ToStringOut));
 	return ServerOffsets::FName_ToStringOut;
 }
 
@@ -1247,7 +1303,12 @@ uintptr_t Finder::FindUObjectBaseUtility_GetInterfaceAddress() {
 		return ServerOffsets::UObjectBaseUtility_GetInterfaceAddress;
 	static uintptr_t Addr = 0;
 
-	Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 33 FF 48 8B DA 48 8B F1 48 85 D2 0F 84").Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 33 FF 48 8B DA 48 8B F1 48 85 D2 0F 84").Get();
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 33 DB 48 8B FA 48 8B F1 48 85 D2").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::UObjectBaseUtility_GetInterfaceAddress = Addr - ImageBase;
@@ -1480,9 +1541,14 @@ uintptr_t Finder::FindUStruct_FindPropertyByName() {
 		return ServerOffsets::UStruct_FindPropertyByName;
 	static uintptr_t Addr = 0;
 
-	Addr = Memcury::Scanner::FindPattern("48 8B 49 ? 48 85 C9 74 ? 4C 8B CA").Get();
-	if (!Addr) {
-		Addr = Memcury::Scanner::FindPattern("48 8B 41 ? 48 85 C0 74 ? 0F 1F 80 ? ? ? ? 48 39 50").Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 8B 49 ? 48 85 C9 74 ? 4C 8B CA").Get();
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 8B 41 ? 48 85 C0 74 ? 0F 1F 80 ? ? ? ? 48 39 50").Get();
+		}
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 8B 41 ? 48 89 54 24 ? 48 85 C0").Get();
 	}
 
 	if (Addr) {
@@ -6190,7 +6256,7 @@ uintptr_t Finder::FindAFortInventory_InitializeExistingItem() {
 		}
 	}
 	else {
-		if (Version::Engine_Version == 4.21) {
+		if (Version::Engine_Version >= 4.21 && Version::Engine_Version <= 4.22) {
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 80 B9 ? ? ? ? 00 48 8B FA 48 8B D9 0F 84 ? ? ? ? ? ? ? 48 8B CF").Get();
 		}
 	}
@@ -6387,7 +6453,7 @@ uintptr_t Finder::FindUNetDriver__ReplicationFrame() {
 			AbsoluteOffset = 2;
 		}
 	}
-	else if (Version::Engine_Version == 4.21) {
+	else if (Version::Engine_Version >= 4.21) {
 		AbsoluteOffset = 2;
 	}
 
@@ -6629,42 +6695,45 @@ uintptr_t Finder::FindAPlayerController_SendClientAdjustment() {
 		return ServerOffsets::APlayerController_SendClientAdjustment;
 
 	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::APlayerController_SendClientAdjustment;
 
-	if (!bInitialized)
+	if (Version::Engine_Version >= 5.4)
 	{
-		bInitialized = true;
-
-		if (Version::Engine_Version >= 5.4)
-		{
-			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B F9 E8 ? ? ? ? 48 8B D8 48 85 C0 74 ? 80 78").Get();
-
-			if (!Addr)
-				Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 8B 91 ? ? ? ? 48 8B D9 83 FA").Get();
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B F9 E8 ? ? ? ? 48 8B D8 48 85 C0 74 ? 80 78").Get();
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 8B 91 ? ? ? ? 48 8B D9 83 FA").Get();
 		}
-		else if (Version::Fortnite_Version >= 25.00)
-		{
-			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B D9 E8 ? ? ? ? 80 B8 ? ? ? ? ? 75 ? 8B 93").Get();
-
-			if (!Addr)
-				Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 83 3D ? ? ? ? ? 48 8B D9 75").Get();
-		}
-		else if (Version::Fortnite_Version >= 23.00)
-		{
+	}
+	else if (Version::Fortnite_Version >= 25.00)
+	{
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B D9 E8 ? ? ? ? 80 B8 ? ? ? ? ? 75 ? 8B 93").Get();
+		if (!Addr) {
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 83 3D ? ? ? ? ? 48 8B D9 75").Get();
-
-			if (!Addr)
-				Addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 ? 48 89 68 ? 48 89 70 ? 48 89 78 ? 41 56 48 83 EC ? 83 3D ? ? ? ? ? 48 8B F1").Get();
 		}
-		else if (Version::Fortnite_Version >= 20.00)
-			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 8B 91 ? ? ? ? 48 8B D9 83 FA").Get();
-		else
-			Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9", false).Get();
+	}
+	else if (Version::Fortnite_Version >= 23.00)
+	{
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 83 3D ? ? ? ? ? 48 8B D9 75").Get();
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 ? 48 89 68 ? 48 89 70 ? 48 89 78 ? 41 56 48 83 EC ? 83 3D ? ? ? ? ? 48 8B F1").Get();
+		}
+	}
+	else if (Version::Fortnite_Version >= 20.00) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 8B 91 ? ? ? ? 48 8B D9 83 FA").Get();
+	}
+	else {
+		Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9", false).Get();
+		if (!Addr) {
+			Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC ?? 48 8B 99 ?? ?? ?? ?? 48 39 99", false).Get();
+		}
 	}
 
 	if (Addr) {
 		ServerOffsets::APlayerController_SendClientAdjustment = Addr - ImageBase;
 	}
 
+	bInitialized = true;
 	Log("APlayerController_SendClientAdjustment found at: 0x" + std::format("{:X}", ServerOffsets::APlayerController_SendClientAdjustment));
 	return ServerOffsets::APlayerController_SendClientAdjustment;
 }
@@ -8442,7 +8511,12 @@ uintptr_t Finder::FindUNetDriver_IsLevelInitializedForActor() {
 		return ServerOffsets::UNetDriver_IsLevelInitializedForActor;
 	uintptr_t Addr = 0;
 
-	Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 48 8B 81 ? ? ? ? 49 8B D8 48 8B FA").Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 48 8B 81 ? ? ? ? 49 8B D8 48 8B FA").Get();
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 4C 8B 91 ? ? ? ? 49 8B D8").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::UNetDriver_IsLevelInitializedForActor = Addr - ImageBase;
@@ -8594,15 +8668,22 @@ uintptr_t Finder::FindUFortWorldItemDefinition_ServerExecuteVFT() {
 		return ServerOffsets::UFortWorldItemDefinition_ServerExecuteVFT;
 
 	uintptr_t Addr = 0;
-	Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 56 57 41 56 48 83 EC ? 49 8B E8 48 8B F2 4C 8B F1 E8 ? ? ? ? 48 85 ED").Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 56 57 41 56 48 83 EC ? 49 8B E8 48 8B F2 4C 8B F1 E8 ? ? ? ? 48 85 ED").Get();
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 56 57 41 56 48 83 EC ? 49 8B F8 4C 8B F2 48 8B E9").Get();
+	}
 
-	void** VFT = ((UClass*)FUObjectArray::FindObject("Class /Script/FortniteGame.FortWeaponItemDefinition"))->GetDefaultObject()->VTable;
-	for (int i = 0; i < 1024; i++)
-	{
-		if (VFT[i] == (void*)(Addr))
+	if (Addr) {
+		void** VFT = ((UClass*)FUObjectArray::FindObject("Class /Script/FortniteGame.FortWeaponItemDefinition"))->GetDefaultObject()->VTable;
+		for (int i = 0; i < 1024; i++)
 		{
-			ServerOffsets::UFortWorldItemDefinition_ServerExecuteVFT = i;
-			break;
+			if (VFT[i] == (void*)(Addr))
+			{
+				ServerOffsets::UFortWorldItemDefinition_ServerExecuteVFT = i;
+				break;
+			}
 		}
 	}
 
@@ -9264,7 +9345,12 @@ uintptr_t Finder::FindAGameModeBase_GetGameSessionClass() {
 	}
 	uintptr_t Addr = 0;
 
-	Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 48 83 B9 ? ? ? ? 00 48 8B DA 48 8B F9 74 ? E8 ? ? ? ? 48 8B 97").Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 48 83 B9 ? ? ? ? 00 48 8B DA 48 8B F9 74 ? E8 ? ? ? ? 48 8B 97").Get();
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC ? 48 83 B9 ? ? ? ? 00 48 8B DA 48 8B F9 74 ? E8 ? ? ? ? 48 85 C0 74 ? 48 8B 97 ? ? ? ? 4C 8D 40 ? 48 63 40 ? 3B 42 ? 7F ? 48 8B C8 48 8B 42 ? ? ? ? ? 75 ? 48 85 D2 74 ? ? ? ? 48 8B C3 48 8B 5C 24 ? 48 83 C4 ? 5F C3 E8").Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::AGameModeBase_GetGameSessionClass = Addr - ImageBase;
@@ -9796,6 +9882,7 @@ uintptr_t Finder::FindUWorld_ListenPatch() {
 	else {
 		uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"LoadMap: failed to Listen(%s)").Get();
 		if (StringAddr) {
+			const int SkipTo = Version::Engine_Version >= 4.22 ? 2 : 1;
 			int Skipped = 0;
 
 			for (int i = 0; i < 1024; i++)
@@ -9803,7 +9890,7 @@ uintptr_t Finder::FindUWorld_ListenPatch() {
 				auto Ptr = (uint8_t*)(StringAddr - i);
 				if (*Ptr == 0xE8)
 				{
-					if (Skipped == 1) {
+					if (Skipped == SkipTo) {
 						Addr = uint64_t(Ptr);
 						break;
 					}
@@ -10754,8 +10841,14 @@ uintptr_t Finder::FindFSpecialActorInitData_Destructor() {
 uintptr_t Finder::FindAFortSpecialActorReplicationInfo_AddActorToReplicationList() {
 	if (ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList)
 		return ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList;
+	uintptr_t Addr = 0;
 
-	uintptr_t Addr = Memcury::Scanner::FindPattern("40 56 41 56 48 81 EC 58 02 00 00 4C 8B 4A", false).Get();
+	if (Version::Engine_Version <= 4.21) {
+		Addr = Memcury::Scanner::FindPattern("40 56 41 56 48 81 EC 58 02 00 00 4C 8B 4A", false).Get();
+	}
+	else if (Version::Engine_Version == 4.22) {
+		Addr = Memcury::Scanner::FindPattern("40 55 56 48 81 EC ? ? ? ? 44 8B 5A", false).Get();
+	}
 
 	if (Addr) {
 		ServerOffsets::AFortSpecialActorReplicationInfo_AddActorToReplicationList = Addr - ImageBase;

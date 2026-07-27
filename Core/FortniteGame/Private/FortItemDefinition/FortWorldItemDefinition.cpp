@@ -2,6 +2,12 @@
 #include "FortniteGame/Public/FortItemDefinition/FortWorldItemDefinition.h"
 
 bool UFortWorldItemDefinition::ServerExecute(UFortItem* Item, AFortPlayerController* Instigator) {
+	// Index 0 means the finder failed - dispatching VTable[0] would call the scalar deleting destructor on this def.
+	if (!Finder::FindUFortWorldItemDefinition_ServerExecuteVFT()) {
+		Log("UFortWorldItemDefinition::ServerExecute: VFT index not found, skipping!");
+		return false;
+	}
+
 	bool (*&ServerExecuteInternal)(UFortWorldItemDefinition * This, UFortItem * Item, AFortPlayerController * Instigator) = decltype(ServerExecuteInternal)(VTable[Finder::FindUFortWorldItemDefinition_ServerExecuteVFT()]);
 	return ServerExecuteInternal(this, Item, Instigator);
 }

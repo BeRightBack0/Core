@@ -1072,6 +1072,11 @@ namespace Memcury
         {
             const auto scanBytes = _address.GetAs<std::uint8_t*>();
 
+            // Scanning from a null base walks straight off the map: forward starts at +1 and backward at -1,
+            // so a zero address faults on 0x1 or 0xFFFFFFFFFFFFFFFF. Hand back an empty scanner instead.
+            if (reinterpret_cast<uintptr_t>(scanBytes) < 0x10000)
+                return Scanner(PE::Address(nullptr));
+
             bool bFound = false;
 
             for (auto i = (forward ? 1 : -1); forward ? (i < 2048) : (i > -2048); forward ? i++ : i--)
