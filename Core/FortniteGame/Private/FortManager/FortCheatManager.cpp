@@ -2152,8 +2152,8 @@ void UFortCheatManager::ActivateRifts(FCommandParser& Parser)
 				continue;
 		}
 
-		Rift->OnPlaced();
-		Rift->OnActivated();
+		//Rift->OnPlaced();
+		//Rift->OnActivated();
 		Activated++;
 
 		PC->ClientMessage("Activated " + Rift->GetName().ToString()
