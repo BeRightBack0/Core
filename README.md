@@ -114,7 +114,7 @@ Current command groups include:
 | Items and ammo | `GiveItem`, `ForceGiveItem`, `SpawnPickup`, `SetLoadedAmmo`, `GiveAmmo`, `ClearEquippedItem`, `GetWeaponStats`, `ServerExecuteInventoryItem`, `DumpInventory` |
 | Player state | `SetHealth`, `SetMaxHealth`, `SetShield`, `SetMaxShield`, `SetKillScore`, `TeleportToLocation`, `DumpCurrentLocation` |
 | Pawns and bots | `DumpAllPawns`, `PossessPawnByIndex`, `PossessPawnByName`, `DespawnAllBots` |
-| World and actors | `SpawnActor`, `DumpActorsWithClass`, `DumpAircrafts`, `DestroyTarget`, `StartEvent` |
+| World and actors | `SpawnActor`, `DumpActorsWithClass`, `DumpAircrafts`, `DestroyTarget`, `StartEvent`, `ActivateRifts`, `DumpEncounters`, `StartEncounter` |
 | QuickBars | `SpawnQuickBars`, `DestroyQuickBars`, `DumpQuickBars` |
 | Testing and fun | `LootRain`, `SetGameSpeed`, `TeleportAllToMe`, `SwapPlaces`, `LaunchPawn`, `SetScale`, `ScalePawn`, `Goto`, `DestroyBuildings`, `EmoteAll`, `EmoteAllSpecific`, `EmotePlayerByName`, `TogglePersonalVehicle` |
 | AFortAthenaMutator_Heist | `SetSpawnExitCraftTime`, `DumpExitCraftTimer`, `HeistPhaseStep`, `DumpGameState`, `UpdateGamePhaseStep`, `SpawnExitCraft` |
