@@ -424,8 +424,15 @@
     <ClInclude Include="FortniteGame\Public\FortManager\FortFeedbackManager.h" />
     <ClInclude Include="FortniteGame\Public\FortManager\FortMissionManager.h" />
     <ClInclude Include="FortniteGame\Public\FortItemDefinition\FortGameplayModifierItemDefinition.h" />
+    <ClInclude Include="FortniteGame\Public\Athena\AthenaGameMessageData.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBarrierFlag.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBarrierObjective.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBigBaseWall.h" />
+    <ClInclude Include="FortniteGame\Public\FortItem\ItemsToSpawn.h" />
+    <ClInclude Include="FortniteGame\Public\FortMutator\BarrierTypes.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaExitCraft.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator.h" />
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Barrier.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Heist.h" />
     <ClInclude Include="FortniteGame\Public\FortPickup\FortPickupAthena.h" />
     <ClInclude Include="FortniteGame\Public\FortPlayerStart\FortPlayerStart.h" />
@@ -604,6 +611,10 @@
     <ClCompile Include="FortniteGame\Private\FortAbility\FortAbilitySystemComponent.cpp" />
     <ClCompile Include="FortniteGame\Private\FortItem\FortQuestItem.cpp" />
     <ClCompile Include="FortniteGame\Private\FortManager\FortCheatManager.cpp" />
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBarrierFlag.cpp" />
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBarrierObjective.cpp" />
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBigBaseWall.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Barrier.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp" />
     <ClCompile Include="FortniteGame\Private\FortSpecialActor\FortSpecialActorReplicationInfo.cpp" />

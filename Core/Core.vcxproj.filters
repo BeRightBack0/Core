@@ -921,6 +921,27 @@
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Heist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Barrier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\BarrierTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\Athena\AthenaGameMessageData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortItem\ItemsToSpawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBigBaseWall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBarrierFlag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBarrierObjective.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FortniteGame\Public\FortMutator\FortGameplayMutator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1269,6 +1290,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Barrier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBigBaseWall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBarrierFlag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBarrierObjective.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp">

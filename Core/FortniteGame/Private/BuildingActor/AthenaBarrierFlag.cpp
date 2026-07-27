@@ -1,0 +1,79 @@
+#include "pch.h"
+#include "FortniteGame/Public/BuildingActor/AthenaBarrierFlag.h"
+
+#include "FortniteGame/Public/BuildingActor/AthenaBarrierObjective.h"
+
+void AAthenaBarrierFlag::OnRep_CurrentState()
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_CurrentState");
+
+	if (!Func) {
+		Log("AAthenaBarrierFlag::OnRep_CurrentState: Failed to find function!");
+		return;
+	}
+
+	return Call<void>(Func);
+}
+
+void AAthenaBarrierFlag::OnRep_FoodTeam()
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_FoodTeam");
+
+	if (!Func) {
+		Log("AAthenaBarrierFlag::OnRep_FoodTeam: Failed to find function!");
+		return;
+	}
+
+	return Call<void>(Func);
+}
+
+UStaticMesh* AAthenaBarrierFlag::GetHeadMesh()
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("GetHeadMesh");
+
+	if (!Func) {
+		Log("AAthenaBarrierFlag::GetHeadMesh: Failed to find function!");
+		return nullptr;
+	}
+
+	return Call<UStaticMesh*>(Func);
+}
+
+FVector AAthenaBarrierFlag::GetMeshScale()
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("GetMeshScale");
+
+	if (!Func) {
+		Log("AAthenaBarrierFlag::GetMeshScale: Failed to find function!");
+		return FVector();
+	}
+
+	return Call<FVector>(Func);
+}
+
+AAthenaBarrierObjective* AAthenaBarrierFlag::GetObjectiveActor()
+{
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("GetObjectiveActor");
+
+	if (!Func) {
+		Log("AAthenaBarrierFlag::GetObjectiveActor: Failed to find function!");
+		return nullptr;
+	}
+
+	return Call<AAthenaBarrierObjective*>(Func);
+}
