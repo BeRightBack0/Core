@@ -322,6 +322,22 @@ void AFortPlayerController::ServerCheat(AFortPlayerController* This, FString& Ms
 		CheatManager->DumpAircrafts(Parser);
 		return;
 	}
+	else if (Parser.IsCommand("ActivateRifts")) {
+		CheatManager->ActivateRifts(Parser);
+		return;
+	}
+	else if (Parser.IsCommand("DumpEncounters")) {
+		CheatManager->DumpEncounters(Parser);
+		return;
+	}
+	else if (Parser.IsCommand("StartEncounter")) {
+		CheatManager->StartEncounter(Parser);
+		return;
+	}
+	else if (Parser.IsCommand("ConfigureEncounter")) {
+		CheatManager->ConfigureEncounter(Parser);
+		return;
+	}
 	else if (Parser.IsCommand("SetSpawnExitCraftTime")) {
 		CheatManager->SetSpawnExitCraftTime(Parser);
 		return;

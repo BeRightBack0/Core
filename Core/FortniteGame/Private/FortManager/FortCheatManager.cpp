@@ -21,6 +21,10 @@
 #include "FortniteGame/Public/FortHero/FortHeroSpecialization.h"
 #include "FortniteGame/Public/BuildingActor/BuildingSMActor.h"
 #include "FortniteGame/Public/BuildingActor/BuildingContainer.h"
+#include "FortniteGame/Public/BuildingActor/BuildingRift.h"
+#include "FortniteGame/Public/AI/FortAIDirector.h"
+#include "FortniteGame/Public/AI/FortAIEncounterInfo.h"
+#include "FortniteGame/Public/AI/FortAIEncounterRiftManager.h"
 #include "FortniteGame/Public/BuildingActor/BuildingItemCollectorActor.h"
 #include "FortniteGame/Public/Mcp/FortMcpProfileAccount.h"
 #include "FortniteGame/Public/FortAbility/FortGameplayAbility.h"
@@ -124,6 +128,9 @@ void UFortCheatManager::Help(FCommandParser& Parser)
 	PC->ClientMessage("SpawnActor <ActorClassName> [bSetOwnerAsThis] - Spawns an actor at the player.");
 	PC->ClientMessage("DumpActorsWithClass <ClassName> - Lists all actors of a class with their locations.");
 	PC->ClientMessage("DumpAircrafts - Dumps the aircrafts in the gamestate.");
+	PC->ClientMessage("ActivateRifts [Radius] - Force activates every BuildingRift, optionally only within Radius.");
+	PC->ClientMessage("DumpEncounters - Dumps the AI director's active encounters and the rifts each one claimed.");
+	PC->ClientMessage("StartEncounter [EncounterClassName] - Starts an AI encounter (defaults to the director's BaseEncounterClass).");
 	PC->ClientMessage("DestroyTarget - Destroys the actor under the crosshair.");
 	PC->ClientMessage("StartEvent - Starts this version's live event.");
 	PC->ClientMessage("-- QuickBars --");
@@ -2110,4 +2117,201 @@ void UFortCheatManager::SpawnExitCraft(FCommandParser& Parser)
 	Craft->ForceNetUpdate();
 
 	PC->ClientMessage("Spawned exit craft " + Craft->GetName().ToString() + " CurrentState=" + std::to_string(Craft->CurrentState));
+}
+
+void UFortCheatManager::ActivateRifts(FCommandParser& Parser)
+{
+	AFortPlayerController* PC = GetPlayerController();
+	if (!PC)
+		return;
+
+	UWorld* World = UWorld::GetWorld();
+	if (!World)
+		return;
+
+	if (!ABuildingRift::StaticClass()) {
+		PC->ClientMessage("BuildingRift class not found on this build!");
+		return;
+	}
+
+	float Radius = Parser.GetArgFloat("Radius", 0, 0.f);
+	FVector Origin = PC->Pawn ? PC->Pawn->K2_GetActorLocation() : FVector{};
+
+	int32 Found = 0;
+	int32 Activated = 0;
+
+	for (ABuildingRift* Rift : TObjectRange<ABuildingRift>())
+	{
+		if (!Rift || Rift->IsDefaultObject() || Rift->GetWorld() != World)
+			continue;
+
+		Found++;
+
+		if (Radius > 0.f && PC->Pawn) {
+			if (Rift->GetDistanceTo(PC->Pawn) > Radius)
+				continue;
+		}
+
+		Rift->OnPlaced();
+		Rift->OnActivated();
+		Activated++;
+
+		PC->ClientMessage("Activated " + Rift->GetName().ToString()
+			+ " (Class=" + Rift->GetClass()->GetName().ToString()
+			+ " Slots=" + std::to_string(Rift->FreeSpawnSlots.Num()) + ")");
+	}
+
+	PC->ClientMessage("ActivateRifts: " + std::to_string(Activated) + " of " + std::to_string(Found) + " rifts activated.");
+}
+
+void UFortCheatManager::DumpEncounters(FCommandParser& Parser)
+{
+	AFortPlayerController* PC = GetPlayerController();
+	if (!PC)
+		return;
+
+	UWorld* World = UWorld::GetWorld();
+	if (!World)
+		return;
+
+	AFortAIDirector* AIDirector = AFortAIDirector::GetCurrent(World);
+	if (!AIDirector) {
+		PC->ClientMessage("No AIDirector in this world!");
+		return;
+	}
+
+	PC->ClientMessage("===== AI Director Dump =====");
+	PC->ClientMessage("Director: " + AIDirector->GetName().ToString());
+
+	if (AIDirector->_HasRiftSpawnPoints())
+		PC->ClientMessage("RiftSpawnPoints: " + std::to_string(AIDirector->RiftSpawnPoints.Num()));
+	if (AIDirector->_HasMaxActiveAlive())
+		PC->ClientMessage("MaxActiveAlive: " + std::to_string(AIDirector->MaxActiveAlive) + " NumActiveAlive: " + std::to_string(AIDirector->NumActiveAlive));
+
+	if (!AIDirector->_HasActiveEncounters()) {
+		PC->ClientMessage("No ActiveEncounters property!");
+		return;
+	}
+
+	PC->ClientMessage("ActiveEncounters: " + std::to_string(AIDirector->ActiveEncounters.Num()));
+
+	for (UFortAIEncounterInfo* Encounter : AIDirector->ActiveEncounters)
+	{
+		if (!Encounter)
+			continue;
+
+		PC->ClientMessage("-- " + Encounter->GetName().ToString());
+
+		if (Encounter->_HasEncounterState())
+			PC->ClientMessage("   State: " + std::to_string(Encounter->EncounterState) + " Pacing: " + std::to_string(Encounter->PacingState));
+		if (Encounter->_HasNumRiftsToUse())
+			PC->ClientMessage("   Rifts to use: " + std::to_string(Encounter->NumRiftsToUse) + " min " + std::to_string(Encounter->MinRiftsToUse) + " used " + std::to_string(Encounter->NumRiftsUsed));
+		if (Encounter->_HasCurrentSpawnPointsCap())
+			PC->ClientMessage("   SpawnPoints: " + std::to_string(Encounter->CurrentSpawnPointsUsed) + " / " + std::to_string(Encounter->CurrentSpawnPointsCap));
+
+		if (!Encounter->_HasRiftManager() || !Encounter->RiftManager) {
+			PC->ClientMessage("   RiftManager: NULL");
+			continue;
+		}
+
+		UFortAIEncounterRiftManager* RiftManager = Encounter->RiftManager;
+		PC->ClientMessage("   RiftManager: " + RiftManager->GetName().ToString());
+
+		if (RiftManager->_HasNumRiftsToUse())
+			PC->ClientMessage("      NumRiftsToUse: " + std::to_string(RiftManager->NumRiftsToUse) + " Min: " + std::to_string(RiftManager->MinRiftsToUse));
+
+		if (RiftManager->_HasRiftClassTemplate()) {
+			UClass* RiftClass = RiftManager->RiftClassTemplate.Get();
+			PC->ClientMessage("      RiftClassTemplate: " + (RiftClass ? RiftClass->GetName().ToString() : "None"));
+		}
+
+		if (!RiftManager->_HasCurrentSpawnArea()) {
+			PC->ClientMessage("      No CurrentSpawnArea property!");
+			continue;
+		}
+
+		const int32 RiftSize = FFortAIEncounterRift::GetSize();
+		if (RiftSize <= 0) {
+			PC->ClientMessage("      Failed to get the size of FFortAIEncounterRift!");
+			continue;
+		}
+
+		FFortAIEncounterSpawnArea& Area = RiftManager->CurrentSpawnArea;
+		PC->ClientMessage("      CurrentSpawnArea: Active=" + std::string(Area.bIsActive ? "true" : "false")
+			+ " Rifts=" + std::to_string(Area.Rifts.Num())
+			+ " Pending=" + std::to_string(Area.PendingRifts.Num()));
+
+		for (int32 i = 0; i < Area.Rifts.Num(); i++)
+		{
+			FFortAIEncounterRift& Rift = Area.Rifts.GetWithSize(i, RiftSize);
+			ABuildingRift* RiftActor = Rift.RiftActor;
+
+			PC->ClientMessage("      [" + std::to_string(i) + "] "
+				+ (RiftActor ? RiftActor->GetName().ToString() : "NULL")
+				+ " QueryID=" + std::to_string(Rift.QueryID)
+				+ (RiftActor && RiftActor->_HasCosmeticState() ? " CosmeticState=" + std::to_string(RiftActor->CosmeticState) : "")
+				+ (RiftActor && RiftActor->_HasbRiftIsActive() ? " Active=" + std::string(RiftActor->bRiftIsActive ? "true" : "false") : ""));
+		}
+	}
+
+	PC->ClientMessage("===== End AI Director Dump =====");
+}
+
+void UFortCheatManager::StartEncounter(FCommandParser& Parser)
+{
+	AFortPlayerController* PC = GetPlayerController();
+	if (!PC)
+		return;
+
+	UWorld* World = UWorld::GetWorld();
+	if (!World)
+		return;
+
+	AFortAIDirector* AIDirector = AFortAIDirector::GetCurrent(World);
+	if (!AIDirector) {
+		PC->ClientMessage("No AIDirector in this world!");
+		return;
+	}
+
+	UClass* EncounterClass = nullptr;
+
+	std::string EncounterClassName = Parser.GetArg("EncounterClassName", 0);
+	if (!EncounterClassName.empty()) {
+		UObject* EncounterObj = Utils::GetObjectFromString(EncounterClassName, UClass::StaticClass());
+		EncounterClass = EncounterObj ? (UClass*)EncounterObj : nullptr;
+
+		if (!EncounterClass) {
+			PC->ClientMessage("Encounter class not found: " + EncounterClassName);
+			return;
+		}
+	}
+
+	if (!EncounterClass && AIDirector->_HasBaseEncounterClass())
+		EncounterClass = AIDirector->BaseEncounterClass.Get();
+
+	if (!EncounterClass && AIDirector->_HasDefaultNightEncounter())
+		EncounterClass = AIDirector->DefaultNightEncounter.Get();
+
+	if (!EncounterClass) {
+		PC->ClientMessage("No encounter class to start! Pass one by name, the director has neither BaseEncounterClass nor DefaultNightEncounter set.");
+		return;
+	}
+
+	PC->ClientMessage("Starting encounter from " + EncounterClass->GetName().ToString() + "...");
+
+	UFortAIEncounterInfo* Encounter = AIDirector->StartEncounterWithoutObjective(EncounterClass);
+	if (!Encounter) {
+		PC->ClientMessage("StartEncounterWithoutObjective returned null.");
+		return;
+	}
+
+	PC->ClientMessage("Started encounter: " + Encounter->GetName().ToString());
+
+	if (Encounter->_HasEncounterState())
+		PC->ClientMessage("State: " + std::to_string(Encounter->EncounterState) + " Pacing: " + std::to_string(Encounter->PacingState));
+
+	if (Encounter->_HasRiftManager())
+		PC->ClientMessage("RiftManager: " + std::string(Encounter->RiftManager ? Encounter->RiftManager->GetName().ToString() : "NULL"));
+
+	PC->ClientMessage("Run DumpEncounters to see what it claimed.");
 }

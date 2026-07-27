@@ -376,6 +376,16 @@
     <ClInclude Include="FortniteGame\Public\AI\FortAISpawnerData.h" />
     <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterTimedModifierTags.h" />
     <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterInfo.h" />
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMission.h" />
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMissionManager.h" />
+    <ClInclude Include="FortniteGame\Public\FortMission\FortPvPMissionManager.h" />
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMission_RiftSpawners.h" />
+    <ClInclude Include="FortniteGame\Public\FortMission\FortRiftSpawnerData.h" />
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterRift.h" />
+    <ClInclude Include="FortniteGame\Public\AI\FortRiftReservationHandle.h" />
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterRiftManager.h" />
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterSpawnArea.h" />
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterQueryDirectionTracker.h" />
     <ClInclude Include="FortniteGame\Public\AI\IntensityData.h" />
     <ClInclude Include="FortniteGame\Public\AI\UtilityData.h" />
     <ClInclude Include="FortniteGame\Public\AI\UtilityTypeFloatPair.h" />
@@ -394,6 +404,8 @@
     <ClInclude Include="FortniteGame\Public\AI\FortAIGoalManager.h" />
     <ClInclude Include="FortniteGame\Public\AI\FortAIPawn.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingActor.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingRift.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\FortSpawnSlotData.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingAutoNav.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingContainer.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingSMActor.h" />
@@ -570,6 +582,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp" />
     <ClCompile Include="FortniteGame\Private\AI\FortAIDirector.cpp" />
     <ClCompile Include="FortniteGame\Private\AI\FortAIEncounterInfo.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortMission\FortMission_RiftSpawners.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortMission\FortMissionManager.cpp" />
     <ClCompile Include="FortniteGame\Private\AI\FortAIGoalManager.cpp" />
     <ClCompile Include="FortniteGame\Private\Asset\FortAssetManager.cpp" />
     <ClCompile Include="FortniteGame\Private\Athena\FortAthenaMapInfo.cpp" />
@@ -579,6 +593,7 @@
     <ClCompile Include="FortniteGame\Private\Events\Events.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BGAConsumableSpawner.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingActor.cpp" />
+    <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingRift.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingContainer.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingFoundation.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingGameplayActor.cpp" />

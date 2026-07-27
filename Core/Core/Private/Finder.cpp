@@ -11098,7 +11098,7 @@ uintptr_t Finder::FindAFortAIDirector_StartEncounterWithoutObjective() {
 	auto StringRef = Memcury::Scanner::FindStringRef(L"FortAIDirector StartEncounter %s class %s FAILED!");
 	if (StringRef.IsValid()) {
 		uintptr_t FunctionStart = StringRef.FindFunctionStart().Get();
-		Addr = Memcury::Scanner::FindPointerRef((LPVOID)FunctionStart, 3).Get();
+		Addr = Memcury::Scanner::FindPointerRef((LPVOID)FunctionStart, 3).FindFunctionStart().Get();
 	}
 
 	if (Addr) {

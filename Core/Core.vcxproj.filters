@@ -627,6 +627,36 @@
     <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMission.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMissionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMission\FortPvPMissionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMission\FortMission_RiftSpawners.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMission\FortRiftSpawnerData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterRift.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\AI\FortRiftReservationHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterRiftManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterSpawnArea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\AI\FortAIEncounterQueryDirectionTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FortniteGame\Public\AI\IntensityData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -712,6 +742,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingActor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\BuildingRift.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\FortSpawnSlotData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\GameplayTags\Classes\GameplayTagContainer.h">
@@ -1253,6 +1289,9 @@
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingActor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingRift.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FortniteGame\Private\BuildingActor\BuildingSMActor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1323,6 +1362,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\AI\FortAIEncounterInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMission\FortMission_RiftSpawners.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMission\FortMissionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortQuest\FortQuestManager.cpp">

@@ -466,3 +466,14 @@ public:
 	DefineEnumProperty(WaitingForPawns);
 	DefineEnumProperty(Exiting);
 };
+
+class ERiftCosmeticState {
+public:
+	DefineUnrealEnum(ERiftCosmeticState);
+
+	DefineEnumProperty(None);
+	DefineEnumProperty(Intro);
+	DefineEnumProperty(Idle);
+	DefineEnumProperty(RampUp);
+	DefineEnumProperty(ShouldDie);
+};

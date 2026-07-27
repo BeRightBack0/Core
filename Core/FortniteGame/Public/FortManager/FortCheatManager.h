@@ -21,8 +21,6 @@ public:
 
 	void AddKillFeedMessage();
 public:
-	// Every server cheat lives here; AFortPlayerController::ServerCheat only parses the command line
-	// and dispatches to one of these.
 	AFortPlayerController* GetPlayerController() const;
 
 	void Help(FCommandParser& Parser);
@@ -68,6 +66,9 @@ public:
 	void EmotePlayerByName(FCommandParser& Parser);
 	void TogglePersonalVehicle(FCommandParser& Parser);
 	void DumpAircrafts(FCommandParser& Parser);
+	void ActivateRifts(FCommandParser& Parser);
+	void DumpEncounters(FCommandParser& Parser);
+	void StartEncounter(FCommandParser& Parser);
 	void SetSpawnExitCraftTime(FCommandParser& Parser);
 	void DumpExitCraftTimer(FCommandParser& Parser);
 	void UpdateGamePhaseStep(FCommandParser& Parser);
