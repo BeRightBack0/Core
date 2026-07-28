@@ -4,7 +4,7 @@
 void UMcpProfileGroup::SendRequestNow(UMcpProfileGroup* This, void* HttpRequest, EContextCredentials ContextCredentials)
 {
 	//Log("UMcpProfileGroup::SendRequestNow called");
-	if (Version::Fortnite_Version <= 7.10) {
+	if (Version::Fortnite_Version <= 7.20) {
 		*(EContextCredentials*)(__int64(HttpRequest) + (Version::Fortnite_Version >= 4.2 ? 0x28 : 0x60)) = EContextCredentials::CXC_Public;
 	}
 	else {

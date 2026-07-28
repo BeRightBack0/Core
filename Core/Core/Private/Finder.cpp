@@ -10270,20 +10270,12 @@ uintptr_t Finder::FindAFortPlayerController_GetPlayerViewPoint() {
 		return ServerOffsets::AFortPlayerController_GetPlayerViewPoint;
 	uintptr_t Addr = 0;
 	
-	uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s").Get();
-	if (!StringAddr) {
-		StringAddr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Rotation, ViewTarget=%s").Get();
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s");
+	if (!StringAddr.IsValid()) {
+		StringAddr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Rotation, ViewTarget=%s");
 	}
-	if (StringAddr) {
-		for (int i = 0; i < 1024; i++)
-		{
-			auto Ptr = (uint8_t*)(StringAddr - i);
-			if (*Ptr == 0x48 && *(Ptr + 1) == 0x89 && *(Ptr + 2) == 0x5C)
-			{
-				Addr = uint64_t(Ptr);
-				break;
-			}
-		}
+	if (StringAddr.IsValid()) {
+		Addr = StringAddr.FindFunctionStart().Get();
 	}
 	
 	if (Addr) {
