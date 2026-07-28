@@ -77,6 +77,9 @@ public:
 	void SetDynamicFoundationTransform(FTransform& NewTransform);
 	static void execSetDynamicFoundationTransform(ABuildingFoundation* Context, FFrame& Stack);
 
+	void EditorOnlyAddAdditionalWorld(FString& LevelPackageName);
+	static void execEditorOnlyAddAdditionalWorld(ABuildingFoundation* Context, FFrame& Stack);
+
 	bool SelectAndSetupMyBuildingLevel(void* ReservedRandomValues = nullptr);
 
 	bool StreamInMyBuilding(bool bOnlyAdd);
@@ -92,9 +95,12 @@ public:
 
 	void OnRep_FoundationEnabledState();
 
+	void OnRep_DynamicFoundationTransform();
+
 	static void Hook() {
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled", execSetDynamicFoundationEnabled);
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform", execSetDynamicFoundationTransform);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyAddAdditionalWorld", execEditorOnlyAddAdditionalWorld);
 
 		Log("ABuildingFoundation Hooked");
 	}

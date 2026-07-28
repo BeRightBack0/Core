@@ -70,12 +70,7 @@ void ABuildingFoundation::execSetDynamicFoundationEnabled(ABuildingFoundation* C
 
 void ABuildingFoundation::SetDynamicFoundationTransform(FTransform& NewTransform) {
 	DynamicFoundationTransform = NewTransform;
-
-	DynamicFoundationRepData.Rotation = NewTransform.Rotation.Rotator();
-	DynamicFoundationRepData.Translation = NewTransform.Translation;
-	OnRep_DynamicFoundationRepData();
-
-	StreamingData.FoundationLocation = NewTransform.Translation;
+	OnRep_DynamicFoundationTransform();
 }
 
 void ABuildingFoundation::execSetDynamicFoundationTransform(ABuildingFoundation* Context, FFrame& Stack) {
@@ -83,6 +78,44 @@ void ABuildingFoundation::execSetDynamicFoundationTransform(ABuildingFoundation*
 	Stack.IncrementCode();
 
 	Context->SetDynamicFoundationTransform(NewTransform);
+}
+
+void ABuildingFoundation::EditorOnlyAddAdditionalWorld(FString& LevelPackageName)
+{
+	if (LevelPackageName.IsEmpty() || !LevelPackageName.IsValid()) {
+		Log("ABuildingFoundation::EditorOnlyAddAdditionalWorld: LevelPackageName is empty!");
+		return;
+	}
+
+	std::string PackageName = LevelPackageName.ToString();
+	std::string ShortName = PackageName.substr(PackageName.find_last_of('/') + 1);
+	std::string ObjectPath = PackageName + "." + ShortName;
+
+	std::wstring WideObjectPath(ObjectPath.begin(), ObjectPath.end());
+	FName AssetPathName = UKismetStringLibrary::Conv_StringToName(WideObjectPath.c_str());
+
+	for (int i = 0; i < AdditionalWorlds.Num(); i++)
+	{
+		FName& ExistingPathName = AdditionalWorlds[i].ObjectID.AssetPathName;
+		if (ExistingPathName.ComparisonIndex == AssetPathName.ComparisonIndex && ExistingPathName.Number == AssetPathName.Number) {
+			return;
+		}
+	}
+
+	TSoftObjectPtr<UWorld> World;
+	World.WeakPtr.Reset();
+	World.TagAtLastTest = 0;
+	World.ObjectID.AssetPathName = AssetPathName;
+
+	AdditionalWorlds.Add(World);
+	Log("ABuildingFoundation::EditorOnlyAddAdditionalWorld: Added " + ObjectPath + " to " + GetName().ToString());
+}
+
+void ABuildingFoundation::execEditorOnlyAddAdditionalWorld(ABuildingFoundation* Context, FFrame& Stack) {
+	FString& LevelPackageName = Stack.StepCompiledInRef<FString>();
+	Stack.IncrementCode();
+
+	Context->EditorOnlyAddAdditionalWorld(LevelPackageName);
 }
 
 void ABuildingFoundation::SetupFoundations()
@@ -210,6 +243,19 @@ void ABuildingFoundation::OnRep_FoundationEnabledState() {
 
 	if (Func == nullptr)
 		Func = FindFunction("OnRep_FoundationEnabledState");
+
+	if (!Func) {
+		return;
+	}
+
+	Call(Func);
+}
+
+void ABuildingFoundation::OnRep_DynamicFoundationTransform() {
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_DynamicFoundationTransform");
 
 	if (!Func) {
 		return;
