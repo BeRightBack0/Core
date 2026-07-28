@@ -8425,29 +8425,25 @@ uintptr_t Finder::FindUAbilitySystemComponent_FindAbilitySpecFromHandle() {
 }
 
 uintptr_t Finder::FindUChannel_Close() {
-	if (ServerOffsets::UChannel_CloseVFT)
-		return ServerOffsets::UChannel_CloseVFT;
+	if (ServerOffsets::UChannel_Close)
+		return ServerOffsets::UChannel_Close;
 	uintptr_t Addr = 0;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::UChannel_Close;
 
-	uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"UChannel::Close: Sending CloseBunch. ChIndex == 0. Name: %s").Get();
-	if (StringAddr) {
-		for (int i = 0; i < 1000; i++)
-		{
-			auto Ptr = (uint8_t*)(StringAddr - i);
-			if (*Ptr == 0x40 && *(Ptr + 1) == 0x53)
-			{
-				Addr = uint64_t(Ptr);
-				break;
-			}
-		}
+	auto StringAddr = Memcury::Scanner::FindStringRef(L"UChannel::Close: Sending CloseBunch. ChIndex == 0. Name: %s");
+	if (StringAddr.IsValid()) {
+		Addr = StringAddr.FindFunctionStart().Get();
 	}
 
 	if (Addr) {
-		ServerOffsets::UChannel_CloseVFT = Addr - ImageBase;
+		ServerOffsets::UChannel_Close = Addr - ImageBase;
 	}
 
-	Log("UChannel_CloseVFT found at: 0x" + std::format("{:X}", ServerOffsets::UChannel_CloseVFT));
-	return ServerOffsets::UChannel_CloseVFT;
+	bInitialized = true;
+	Log("UChannel_Close found at: 0x" + std::format("{:X}", ServerOffsets::UChannel_Close));
+	return ServerOffsets::UChannel_Close;
 }
 
 uintptr_t Finder::FindUChannel_CloseVFT() {

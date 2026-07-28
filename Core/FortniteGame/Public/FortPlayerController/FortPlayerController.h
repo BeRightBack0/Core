@@ -137,7 +137,8 @@ public:
 
 	static void ServerPlaySprayItem(AFortPlayerController* This, UAthenaSprayItemDefinition* SprayAsset);
 
-	static void execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, void* const Result);
+	AActor* SpawnToyInstance(TSubclassOf<AActor> ToyClass, FTransform& SpawnPosition);
+	static void execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, AActor** Result);
 
 	static inline void (*GetPlayerViewPointOG)(AFortPlayerController* This, FVector& out_Location, FRotator& out_Rotation);
 	static void GetPlayerViewPoint(AFortPlayerController* This, FVector& out_Location, FRotator& out_Rotation);
@@ -214,7 +215,7 @@ public:
 		);*/
 		MH_CreateHook((LPVOID)(ImageBase + Finder::FindAFortPlayerController_RemoveInventoryItem()), RemoveInventoryItem, (LPVOID*)&RemoveInventoryItemOG);
 
-		if (Version::Fortnite_Version <= 7.10 || Version::Fortnite_Version == 1.10 || Version::Fortnite_Version == 1.11) {
+		if (Version::Fortnite_Version <= 7.20 || Version::Fortnite_Version == 1.10 || Version::Fortnite_Version == 1.11) {
 			HookEveryVTable(
 				AFortPlayerController::StaticClass(),
 				AFortPlayerController::StaticClass()->GetFunction("Function /Script/FortniteGame.FortPlayerController.ServerCreateBuildingActor"),

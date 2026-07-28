@@ -1048,31 +1048,34 @@ void AFortPlayerController::ServerPlayEmoteItem(AFortPlayerController* This, UFo
 	}
 }
 
-void AFortPlayerController::execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, void* const Result) {
+AActor* AFortPlayerController::SpawnToyInstance(TSubclassOf<AActor> ToyClass, FTransform& SpawnPosition) {
+	UWorld* World = UWorld::GetWorld();
+	if (!World) {
+		return;
+	}
+
+	AActor* NewToy = World->SpawnActor(ToyClass.Class, SpawnPosition, this);
+
+	return NewToy;
+}
+
+void AFortPlayerController::execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, AActor** Result) {
 	// The toy spawn ability calls SpawnToyInstance from its Blueprint graph on the
 	// server. The native implementation does not create the toy actor on a
 	// Core-hosted server, so read the params, spawn the toy ourselves and hand it
 	// back as the return value (issue #86).
-	UClass* ToyClass = nullptr;
-	FTransform SpawnTransform;
+	TSubclassOf<AActor> ToyClass;
+	FTransform SpawnPosition;
 
 	Stack.StepCompiledIn(&ToyClass);
-	Stack.StepCompiledIn(&SpawnTransform);
+	Stack.StepCompiledIn(&SpawnPosition);
 	Stack.IncrementCode();
 
 	if (!Context || !ToyClass) {
 		return;
 	}
 
-	UWorld* World = UWorld::GetWorld();
-	if (!World) {
-		return;
-	}
-
-	AActor* NewToy = World->SpawnActor(ToyClass, SpawnTransform, Context);
-	if (NewToy && Result) {
-		*(AActor**)Result = NewToy;
-	}
+	*Result = Context->SpawnToyInstance(ToyClass, SpawnPosition);
 }
 
 void AFortPlayerController::ServerPlaySprayItem(AFortPlayerController* This, UAthenaSprayItemDefinition* SprayAsset) {
