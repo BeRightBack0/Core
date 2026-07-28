@@ -1058,8 +1058,7 @@ void AFortPlayerController::execSpawnToyInstance(AFortPlayerController* Context,
 
 	Stack.StepCompiledIn(&ToyClass);
 	Stack.StepCompiledIn(&SpawnTransform);
-
-	execSpawnToyInstanceOG(Context, Stack, Result);
+	Stack.IncrementCode();
 
 	if (!Context || !ToyClass) {
 		return;
