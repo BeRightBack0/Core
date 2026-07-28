@@ -6203,9 +6203,24 @@ uintptr_t Finder::FindAFortInventory_GetInventoryUsed() {
 		UObject* GetBackpackItemCounts = FUObjectArray::FindObject("Function /Script/FortniteUI.FortInventoryContext.GetBackpackItemCounts");
 		if (GetBackpackItemCounts) {
 			uintptr_t execGetBackpackItemCounts_ADDR = (uintptr_t)((UFunction*)GetBackpackItemCounts)->Func;
-			uintptr_t GetBackpackItemCounts_Impl_ADDR = Utils::GetCallDestination(
-				Memcury::Scanner(execGetBackpackItemCounts_ADDR).FindFunctionEnd().ScanFor({ 0xE8 }, false).Get()
-			);
+			uintptr_t GetBackpackItemCounts_Impl_ADDR = 0;
+
+			uintptr_t FuncEnd = IsExecutableAddress(execGetBackpackItemCounts_ADDR)
+				? Memcury::Scanner(execGetBackpackItemCounts_ADDR).FindFunctionEnd().Get()
+				: 0;
+
+			for (uintptr_t Cursor = FuncEnd; Cursor > execGetBackpackItemCounts_ADDR; Cursor--)
+			{
+				if (*(uint8*)Cursor != 0xE8)
+					continue;
+
+				uintptr_t Target = Utils::GetCallDestination(Cursor);
+				if (IsExecutableAddress(Target))
+				{
+					GetBackpackItemCounts_Impl_ADDR = Target;
+					break;
+				}
+			}
 
 			uint8 Skipped = 0x0;
 
@@ -8709,7 +8724,7 @@ uintptr_t Finder::FindAFortInventory_GetInventoryCapacity()
 
 			uintptr_t C3_Point = 0x0;
 
-			for (int i = 0; i < 1000; i++)
+			for (int i = 0; IsExecutableAddress(execGetBackpackItemCounts_ADDR) && i < 1000; i++)
 			{
 				uintptr_t CurrentAddr = execGetBackpackItemCounts_ADDR + i;
 
@@ -8720,19 +8735,22 @@ uintptr_t Finder::FindAFortInventory_GetInventoryCapacity()
 				}
 			}
 
-			for (int i = 0; i < 40; i++)
+			for (int i = 0; C3_Point && i < 40; i++)
 			{
 				uintptr_t CurrentAddr2 = C3_Point - i;
 
 				if (*(uint8*)(CurrentAddr2) == 0xE8) { //look for call
-					GetBackpackItemCounts_Impl_ADDR = Utils::GetCallDestination(CurrentAddr2);
-					break;
+					uintptr_t Target = Utils::GetCallDestination(CurrentAddr2);
+					if (IsExecutableAddress(Target)) {
+						GetBackpackItemCounts_Impl_ADDR = Target;
+						break;
+					}
 				}
 			}
 
 			uint8 Skipped = 0x0;
 
-			for (int i = 0; i < 70; i++)
+			for (int i = 0; GetBackpackItemCounts_Impl_ADDR && i < 70; i++)
 			{
 				//we looking for the third call instruction
 
@@ -10913,6 +10931,9 @@ uintptr_t Finder::FindAFortGameModeAthena_PlacePlayerOnTeam() {
 		return ServerOffsets::AFortGameModeAthena_PlacePlayerOnTeam;
 	
 	auto StringAddr = Memcury::Scanner::FindStringRef(L"PlacePlayerOnTeam for %s Current: %s Actual: %s");
+	if (!StringAddr.IsValid()) {
+		StringAddr = Memcury::Scanner::FindStringRef(L"PlacePlayerOnTeam for %s Current: %d Actual: %d");
+	}
 	if (StringAddr.IsValid()) {
 		Addr = StringAddr.FindFunctionStart().Get();
 	}

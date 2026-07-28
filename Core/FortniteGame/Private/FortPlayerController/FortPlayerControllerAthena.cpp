@@ -220,36 +220,6 @@ void AFortPlayerControllerAthena::ClientOnPawnDied_Implementation(FFortPlayerDea
 			}
 		}
 	}
-
-	TArray<FString> Medals;
-	TArray<FFortQuestObjectiveCompletion> Advance;
-
-	UFortQuestManager* QuestManager = GetQuestManager(ESubGame::GetAthena());
-	if (QuestManager) {
-		Advance = QuestManager->PendingChanges;
-	}
-
-	int32 MinutesAlive = PlayerStateAthena ? (PlayerStateAthena->SecondsAlive / 60) : -1;
-	int32 PersonalKills = PlayerStateAthena ? PlayerStateAthena->KillScore : -1;
-	int32 TeamKills = PlayerStateAthena ? PlayerStateAthena->TeamKillScore : -1;
-	int32 Placement = PlayerStateAthena ? PlayerStateAthena->Place : -1;
-
-	if (AthenaProfile) {
-		FDedicatedServerUrlContext Context;
-		AthenaProfile->EndBattleRoyaleGame(
-			Advance,
-			FortGameModeAthena->CurrentPlaylistId,
-			MinutesAlive,
-			PersonalKills,
-			TeamKills,
-			Placement,
-			Medals,
-			&Context
-		);
-	}
-
-	Medals.Free();
-	Advance.Free();
 }
 
 void AFortPlayerControllerAthena::OnReadyToStartMatch(AFortPlayerControllerAthena* This) {
