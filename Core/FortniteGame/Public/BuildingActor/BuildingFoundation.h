@@ -83,6 +83,9 @@ public:
 	void EditorOnlyClearAdditionalWorlds();
 	static void execEditorOnlyClearAdditionalWorlds(ABuildingFoundation* Context, FFrame& Stack);
 
+	TArray<FString> EditorOnlyGetAdditionalWorlds();
+	static void execEditorOnlyGetAdditionalWorlds(ABuildingFoundation* Context, FFrame& Stack, TArray<FString>* Result);
+
 	bool SelectAndSetupMyBuildingLevel(void* ReservedRandomValues = nullptr);
 
 	bool StreamInMyBuilding(bool bOnlyAdd);
@@ -105,6 +108,7 @@ public:
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform", execSetDynamicFoundationTransform);
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyAddAdditionalWorld", execEditorOnlyAddAdditionalWorld);
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyClearAdditionalWorlds", execEditorOnlyClearAdditionalWorlds);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyGetAdditionalWorlds", execEditorOnlyGetAdditionalWorlds);
 
 		Log("ABuildingFoundation Hooked");
 	}

@@ -134,6 +134,36 @@ void ABuildingFoundation::execEditorOnlyClearAdditionalWorlds(ABuildingFoundatio
 	Context->EditorOnlyClearAdditionalWorlds();
 }
 
+TArray<FString> ABuildingFoundation::EditorOnlyGetAdditionalWorlds()
+{
+	TArray<FString> Result;
+
+	if (!_HasAdditionalWorlds()) {
+		return Result;
+	}
+
+	for (auto& World : AdditionalWorlds)
+	{
+		std::string ObjectPath = World.ObjectID.AssetPathName.ToString().ToString();
+		if (ObjectPath == "None") {
+			continue;
+		}
+
+		std::string PackageName = ObjectPath.substr(0, ObjectPath.find('.'));
+		std::wstring WidePackageName(PackageName.begin(), PackageName.end());
+
+		Result.Add(FString(WidePackageName.c_str()));
+	}
+
+	return Result;
+}
+
+void ABuildingFoundation::execEditorOnlyGetAdditionalWorlds(ABuildingFoundation* Context, FFrame& Stack, TArray<FString>* Result) {
+	Stack.IncrementCode();
+
+	*Result = Context->EditorOnlyGetAdditionalWorlds();
+}
+
 void ABuildingFoundation::SetupFoundations()
 {
 	std::vector<const char*> FoundationPaths;
