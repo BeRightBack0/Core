@@ -1051,7 +1051,7 @@ void AFortPlayerController::ServerPlayEmoteItem(AFortPlayerController* This, UFo
 AActor* AFortPlayerController::SpawnToyInstance(TSubclassOf<AActor> ToyClass, FTransform& SpawnPosition) {
 	UWorld* World = UWorld::GetWorld();
 	if (!World) {
-		return;
+		return nullptr;
 	}
 
 	AActor* NewToy = World->SpawnActor(ToyClass.Class, SpawnPosition, this);
