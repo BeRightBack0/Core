@@ -164,6 +164,41 @@ void ABuildingFoundation::execEditorOnlyGetAdditionalWorlds(ABuildingFoundation*
 	*Result = Context->EditorOnlyGetAdditionalWorlds();
 }
 
+bool ABuildingFoundation::EditorOnlyRemoveAdditionalWorld(FString& LevelToRemove)
+{
+	if (LevelToRemove.IsEmpty() || !LevelToRemove.IsValid() || !_HasAdditionalWorlds()) {
+		return false;
+	}
+
+	std::string PackageName = LevelToRemove.ToString();
+
+	bool bRemoved = false;
+	for (int i = AdditionalWorlds.Num() - 1; i >= 0; i--)
+	{
+		std::string ObjectPath = AdditionalWorlds[i].ObjectID.AssetPathName.ToString().ToString();
+
+		if (ObjectPath.substr(0, ObjectPath.find('.')) != PackageName) {
+			continue;
+		}
+
+		AdditionalWorlds.RemoveAt(i);
+		bRemoved = true;
+	}
+
+	if (bRemoved) {
+		Log("ABuildingFoundation::EditorOnlyRemoveAdditionalWorld: Removed " + PackageName + " from " + GetName().ToString());
+	}
+
+	return bRemoved;
+}
+
+void ABuildingFoundation::execEditorOnlyRemoveAdditionalWorld(ABuildingFoundation* Context, FFrame& Stack, bool* Result) {
+	FString& LevelToRemove = Stack.StepCompiledInRef<FString>();
+	Stack.IncrementCode();
+
+	*Result = Context->EditorOnlyRemoveAdditionalWorld(LevelToRemove);
+}
+
 void ABuildingFoundation::SetupFoundations()
 {
 	std::vector<const char*> FoundationPaths;
