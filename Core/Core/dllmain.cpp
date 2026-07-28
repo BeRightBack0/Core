@@ -133,7 +133,7 @@ DWORD Main(LPVOID)
 			UWorld* World = UWorld::GetWorld();
             if (World && World->GetName().ToString() != "FortniteEmptyDedicated" && World->AuthorityGameMode) {
 				AGameMode* GameMode = World->AuthorityGameMode->Cast<AGameMode>();
-				if (GameMode && GameMode->MatchState == MatchState::InProgress) {
+				if (GameMode && GameMode->MatchState == MatchState::WaitingToStart) {
                     break;
 				}
             }
@@ -144,8 +144,12 @@ DWORD Main(LPVOID)
         if (Finder::FindCollectGarbageInternal()) {
             uintptr_t Patch2 = Finder::FindCollectGarbageInternal() + ImageBase;
             if (Patch2) {
-                MH_CreateHook((LPVOID)Patch2, RetNull, nullptr);
-                Log("Patched: " + std::to_string(Patch2 - ImageBase) + " with RetNull");
+                if (MH_CreateHook((LPVOID)Patch2, RetNull, nullptr) == MH_OK && MH_EnableHook((LPVOID)Patch2) == MH_OK) {
+                    Log("Patched: " + std::to_string(Patch2 - ImageBase) + " with RetNull");
+                }
+                else {
+                    Log("Failed to patch CollectGarbageInternal with RetNull!");
+                }
             }
         }
     }

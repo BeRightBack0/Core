@@ -45,7 +45,7 @@ public:
 	DefineStructProperty(TSoftObjectPtr<UAthenaItemWrapDefinition>, WrapOverride);
 	DefineStructProperty(TArray<float>, GenericAttributeValues);
 public:
-	uint8_t Padding[0xC4];
+	uint8_t Padding[0x120];
 public:
 	void SetStateValue(uint8 StateType, int32 InValue);
 

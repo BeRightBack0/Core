@@ -212,7 +212,7 @@ TArray<FFortItemEntry> FFortLootPackageData::GetLootItems(
 
 	TArray<FFortLootPackageData*> LootPackages = GetLootPackages(LootPackageDataTables, LootTierData, WorldLevel);
 
-	LootItems.Reserve(NumLootPackageDrops);
+	LootItems.Reserve(NumLootPackageDrops, FFortItemEntry::GetSize());
 	for (int32 i = 0; i < NumLootPackageDrops; i++)
 	{
 		if (i >= LootPackages.Num())

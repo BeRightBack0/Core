@@ -7131,16 +7131,20 @@ uintptr_t Finder::FindUWorld__TimeSeconds() {
 	{
 		uintptr_t addr = straddr - i;
 
+		int ModRMIndex = 0;
 		if (*(uint8*)(addr) == 0xF3 && *(uint8*)(addr + 1) == 0x0F && *(uint8*)(addr + 2) == 0x10)
-		{
-			ServerOffsets::UWorld__TimeSeconds = *(uint32_t*)(addr + 4);
-			break;
-		}
-		else if (*(uint8*)(addr) == 0xF3 && *(uint8*)(addr + 1) == 0x41 && *(uint8*)(addr + 2) == 0x0F)
-		{
-			ServerOffsets::UWorld__TimeSeconds = *(uint32_t*)(addr + 4);
-			break;
-		}
+			ModRMIndex = 3;
+		else if (*(uint8*)(addr) == 0xF3 && (*(uint8*)(addr + 1) & 0xF0) == 0x40 && *(uint8*)(addr + 2) == 0x0F && *(uint8*)(addr + 3) == 0x10)
+			ModRMIndex = 4;
+		else
+			continue;
+
+		uint8 ModRM = *(uint8*)(addr + ModRMIndex);
+		if ((ModRM & 0xC0) != 0x80)
+			continue;
+
+		ServerOffsets::UWorld__TimeSeconds = *(uint32_t*)(addr + ModRMIndex + 1);
+		break;
 	}
 
 	Log("UWorld__TimeSeconds found at: 0x" + std::format("{:X}", ServerOffsets::UWorld__TimeSeconds));
