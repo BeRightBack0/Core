@@ -89,6 +89,18 @@ public:
 	bool EditorOnlyRemoveAdditionalWorld(FString& LevelToRemove);
 	static void execEditorOnlyRemoveAdditionalWorld(ABuildingFoundation* Context, FFrame& Stack, bool* Result);
 
+	bool EditorOnlyAddTransformToPreviewLevel(FTransform& DeltaTransform);
+	static void execEditorOnlyAddTransformToPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result);
+
+	bool EditorOnlyLoadPreviewLevel(bool bCreateLevelInstance);
+	static void execEditorOnlyLoadPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result);
+
+	bool EditorOnlyUnloadPreviewLevel();
+	static void execEditorOnlyUnloadPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result);
+
+	static void execEditorOnlyEnterBatchPreview(UObject* Context, FFrame& Stack);
+	static void execEditorOnlyExitBatchPreview(UObject* Context, FFrame& Stack);
+
 	bool SelectAndSetupMyBuildingLevel(void* ReservedRandomValues = nullptr);
 
 	bool StreamInMyBuilding(bool bOnlyAdd);
@@ -113,6 +125,11 @@ public:
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyClearAdditionalWorlds", execEditorOnlyClearAdditionalWorlds);
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyGetAdditionalWorlds", execEditorOnlyGetAdditionalWorlds);
 		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyRemoveAdditionalWorld", execEditorOnlyRemoveAdditionalWorld);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyAddTransformToPreviewLevel", execEditorOnlyAddTransformToPreviewLevel);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyLoadPreviewLevel", execEditorOnlyLoadPreviewLevel);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyUnloadPreviewLevel", execEditorOnlyUnloadPreviewLevel);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyEnterBatchPreview", execEditorOnlyEnterBatchPreview);
+		ExecHook("Function /Script/FortniteGame.BuildingFoundation.EditorOnlyExitBatchPreview", execEditorOnlyExitBatchPreview);
 
 		Log("ABuildingFoundation Hooked");
 	}

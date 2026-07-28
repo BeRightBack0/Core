@@ -199,6 +199,72 @@ void ABuildingFoundation::execEditorOnlyRemoveAdditionalWorld(ABuildingFoundatio
 	*Result = Context->EditorOnlyRemoveAdditionalWorld(LevelToRemove);
 }
 
+bool ABuildingFoundation::EditorOnlyAddTransformToPreviewLevel(FTransform& DeltaTransform)
+{
+	if (!_HasDynamicFoundationTransform()) {
+		return false;
+	}
+
+	FTransform NewTransform = DynamicFoundationTransform;
+	NewTransform.Translation = NewTransform.Translation + DeltaTransform.Translation;
+	NewTransform.Rotation = DeltaTransform.Rotation * NewTransform.Rotation;
+
+	SetDynamicFoundationTransform(NewTransform);
+	Log("ABuildingFoundation::EditorOnlyAddTransformToPreviewLevel: Moved " + GetName().ToString());
+	return true;
+}
+
+void ABuildingFoundation::execEditorOnlyAddTransformToPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result) {
+	FTransform& DeltaTransform = Stack.StepCompiledInRef<FTransform>();
+	Stack.IncrementCode();
+
+	*Result = Context->EditorOnlyAddTransformToPreviewLevel(DeltaTransform);
+}
+
+bool ABuildingFoundation::EditorOnlyLoadPreviewLevel(bool bCreateLevelInstance)
+{
+	if (!SelectAndSetupMyBuildingLevel()) {
+		Log("ABuildingFoundation::EditorOnlyLoadPreviewLevel: SelectAndSetupMyBuildingLevel failed on " + GetName().ToString());
+		return false;
+	}
+
+	bool bStreamed = StreamInMyBuilding(false);
+	Log("ABuildingFoundation::EditorOnlyLoadPreviewLevel: StreamInMyBuilding returned " + std::string(bStreamed ? "true" : "false") + " on " + GetName().ToString());
+	return bStreamed;
+}
+
+void ABuildingFoundation::execEditorOnlyLoadPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result) {
+	bool bCreateLevelInstance = false;
+	Stack.StepCompiledIn(&bCreateLevelInstance);
+	Stack.IncrementCode();
+
+	*Result = Context->EditorOnlyLoadPreviewLevel(bCreateLevelInstance);
+}
+
+bool ABuildingFoundation::EditorOnlyUnloadPreviewLevel()
+{
+	Log("ABuildingFoundation::EditorOnlyUnloadPreviewLevel: Called on " + GetName().ToString() + ", not supported.");
+	return false;
+}
+
+void ABuildingFoundation::execEditorOnlyUnloadPreviewLevel(ABuildingFoundation* Context, FFrame& Stack, bool* Result) {
+	Stack.IncrementCode();
+
+	*Result = Context->EditorOnlyUnloadPreviewLevel();
+}
+
+void ABuildingFoundation::execEditorOnlyEnterBatchPreview(UObject* Context, FFrame& Stack) {
+	Stack.IncrementCode();
+
+	Log("ABuildingFoundation::EditorOnlyEnterBatchPreview called.");
+}
+
+void ABuildingFoundation::execEditorOnlyExitBatchPreview(UObject* Context, FFrame& Stack) {
+	Stack.IncrementCode();
+
+	Log("ABuildingFoundation::EditorOnlyExitBatchPreview called.");
+}
+
 void ABuildingFoundation::SetupFoundations()
 {
 	std::vector<const char*> FoundationPaths;
