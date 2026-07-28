@@ -478,6 +478,15 @@ public:
 	DefineEnumProperty(ShouldDie);
 };
 
+class EControlPointState {
+public:
+	DefineUnrealEnum(EControlPointState);
+
+	DefineEnumProperty(None);
+	DefineEnumProperty(Disabled);
+	DefineEnumProperty(Enabled);
+};
+
 class EBarrierFoodTeam {
 public:
 	DefineUnrealEnum(EBarrierFoodTeam);

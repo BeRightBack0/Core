@@ -429,7 +429,10 @@
     <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBarrierObjective.h" />
     <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaBigBaseWall.h" />
     <ClInclude Include="FortniteGame\Public\FortItem\ItemsToSpawn.h" />
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaCapturePoint.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\BarrierTypes.h" />
+    <ClInclude Include="FortniteGame\Public\FortMutator\ControlPointTypes.h" />
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Disco.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaExitCraft.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator.h" />
     <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Barrier.h" />
@@ -615,6 +618,7 @@
     <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBarrierObjective.cpp" />
     <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBigBaseWall.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Barrier.cpp" />
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Disco.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Heist.cpp" />
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaExitCraft.cpp" />
     <ClCompile Include="FortniteGame\Private\FortSpecialActor\FortSpecialActorReplicationInfo.cpp" />

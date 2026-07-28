@@ -927,6 +927,15 @@
     <ClInclude Include="FortniteGame\Public\FortMutator\BarrierTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\ControlPointTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\FortMutator\FortAthenaMutator_Disco.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Public\BuildingActor\AthenaCapturePoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FortniteGame\Public\Athena\AthenaGameMessageData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1293,6 +1302,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Barrier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Private\FortMutator\FortAthenaMutator_Disco.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Private\BuildingActor\AthenaBigBaseWall.cpp">
