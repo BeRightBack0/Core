@@ -25,6 +25,7 @@
 #include "FortniteGame/Public/BuildingActor/BuildingTrap.h"
 #include "FortniteGame/Public/BuildingActor/BuildingContainer.h"
 #include "FortniteGame/Public/BuildingActor/BuildingRift.h"
+#include "FortniteGame/Public/BuildingActor/BuildingFoundation.h"
 #include "FortniteGame/Public/BuildingActor/BuildingGameplayActor.h"
 #include "FortniteGame/Public/BuildingActor/BuildingItemCollectorActor.h"
 #include "FortniteGame/Public/Kismet/FortKismetLibrary.h"
@@ -260,6 +261,7 @@ void Utils::Hook() {
 	AFortPoiVolume::Hook();
 	AFortAthenaMutator_Heist::Hook();
 	AFortAthenaExitCraftSpawner::Hook();
+	ABuildingFoundation::Hook();
 
 	status = MH_EnableHook(MH_ALL_HOOKS);
 	if (status != MH_OK) {

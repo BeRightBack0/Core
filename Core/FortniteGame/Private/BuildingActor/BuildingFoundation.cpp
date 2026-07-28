@@ -26,35 +26,63 @@ bool ABuildingFoundation::SelectAndSetupMyBuildingLevel(void* ReservedRandomValu
 	return SelectAndSetupMyBuildingLevelInternal(this, ReservedRandomValues);
 }
 
-void ABuildingFoundation::SetDynamicFoundationEnabled(bool bEnabled)
-{
-	static UFunction* Func = nullptr;
-	static bool bSearched = false;
-
-	if (!bSearched) {
-		bSearched = true;
-		Func = FindFunction("SetDynamicFoundationEnabled");
+bool ABuildingFoundation::StreamInMyBuilding(bool bOnlyAdd) {
+	uintptr_t Addr = Finder::FindABuildingFoundation_StreamInMyBuilding();
+	if (!Addr) {
+		return false;
 	}
 
-	if (!Func) {
-		return;
-	}
-
-	Call(Func, bEnabled);
+	bool (*SelectAndSetupMyBuildingLevelInternal)(ABuildingFoundation*, bool) = decltype(SelectAndSetupMyBuildingLevelInternal)(ImageBase + Addr);
+	return SelectAndSetupMyBuildingLevelInternal(this, bOnlyAdd);
 }
 
-void ABuildingFoundation::Show()
+void ABuildingFoundation::SetDynamicFoundationEnabled(bool bEnabled)
 {
-	SetDynamicFoundationEnabled(true);
+	auto OldEnabled = bFoundationEnabled;
+	bFoundationEnabled = bEnabled;
+	OnRep_FoundationEnabled(OldEnabled);
+
+	DynamicFoundationRepData.EnabledState = bEnabled ? EDynamicFoundationEnabledState::GetEnabled() : EDynamicFoundationEnabledState::GetDisabled();
+	OnRep_DynamicFoundationRepData();
+
+	FoundationEnabledState = bEnabled ? EDynamicFoundationEnabledState::GetEnabled() : EDynamicFoundationEnabledState::GetDisabled();
+	OnRep_FoundationEnabledState();
 
 	bServerStreamedInLevel = true;
 	OnRep_ServerStreamedInLevel();
 
-	if (LevelToStream != "None") {
+	if (!bEnabled || LevelToStream != "None") {
 		return;
 	}
 
-	SelectAndSetupMyBuildingLevel();
+	if (SelectAndSetupMyBuildingLevel()) {
+		StreamInMyBuilding(false);
+	}
+}
+
+void ABuildingFoundation::execSetDynamicFoundationEnabled(ABuildingFoundation* Context, FFrame& Stack) {
+	bool bEnabled;
+	Stack.StepCompiledIn(&bEnabled);
+	Stack.IncrementCode();
+
+	Context->SetDynamicFoundationEnabled(bEnabled);
+}
+
+void ABuildingFoundation::SetDynamicFoundationTransform(FTransform& NewTransform) {
+	DynamicFoundationTransform = NewTransform;
+
+	DynamicFoundationRepData.Rotation = NewTransform.Rotation.Rotator();
+	DynamicFoundationRepData.Translation = NewTransform.Translation;
+	OnRep_DynamicFoundationRepData();
+
+	StreamingData.FoundationLocation = NewTransform.Translation;
+}
+
+void ABuildingFoundation::execSetDynamicFoundationTransform(ABuildingFoundation* Context, FFrame& Stack) {
+	FTransform& NewTransform = Stack.StepCompiledInRef<FTransform>();
+	Stack.IncrementCode();
+
+	Context->SetDynamicFoundationTransform(NewTransform);
 }
 
 void ABuildingFoundation::SetupFoundations()
@@ -82,7 +110,7 @@ void ABuildingFoundation::SetupFoundations()
 			continue;
 		}
 
-		Foundation->Show();
+		Foundation->SetDynamicFoundationEnabled(true);
 
 		Log("Enabled foundation " + Foundation->GetName().ToString());
 	}
@@ -149,4 +177,43 @@ void ABuildingFoundation::SetupIslandScripting()
 			}
 		}
 	}
+}
+
+void ABuildingFoundation::OnRep_FoundationEnabled(bool bOldEnabled) {
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_FoundationEnabled");
+
+	if (!Func) {
+		return;
+	}
+
+	Call(Func, bOldEnabled);
+}
+
+void ABuildingFoundation::OnRep_DynamicFoundationRepData() {
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_DynamicFoundationRepData");
+
+	if (!Func) {
+		return;
+	}
+
+	Call(Func);
+}
+
+void ABuildingFoundation::OnRep_FoundationEnabledState() {
+	static UFunction* Func = nullptr;
+
+	if (Func == nullptr)
+		Func = FindFunction("OnRep_FoundationEnabledState");
+
+	if (!Func) {
+		return;
+	}
+
+	Call(Func);
 }

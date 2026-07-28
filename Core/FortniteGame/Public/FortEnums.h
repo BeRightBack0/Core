@@ -519,3 +519,12 @@ public:
 	DefineEnumProperty(Health_1);
 	DefineEnumProperty(MAX);
 };
+
+class EDynamicFoundationEnabledState {
+public:
+	DefineUnrealEnum(EDynamicFoundationEnabledState);
+
+	DefineEnumProperty(Unknown);
+	DefineEnumProperty(Enabled);
+	DefineEnumProperty(Disabled);
+};

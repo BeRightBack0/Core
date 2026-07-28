@@ -9882,20 +9882,17 @@ uintptr_t Finder::FindUWorld_ListenPatch() {
 	else {
 		uintptr_t StringAddr = Memcury::Scanner::FindStringRef(L"LoadMap: failed to Listen(%s)").Get();
 		if (StringAddr) {
-			const int SkipTo = Version::Engine_Version >= 4.22 ? 2 : 1;
-			int Skipped = 0;
-
 			for (int i = 0; i < 1024; i++)
 			{
 				auto Ptr = (uint8_t*)(StringAddr - i);
-				if (*Ptr == 0xE8)
-				{
-					if (Skipped == SkipTo) {
-						Addr = uint64_t(Ptr);
-						break;
-					}
+				if (*Ptr != 0xE8)
+					continue;
 
-					Skipped++;
+				uintptr_t Target = Memcury::PE::Address(uintptr_t(Ptr)).RelativeOffset(1).Get();
+				if (IsReturnFalseStub(Target) || IsReturnNullStub(Target))
+				{
+					Addr = uint64_t(Ptr);
+					break;
 				}
 			}
 		}
@@ -11203,6 +11200,31 @@ uintptr_t Finder::FindAFortAIDirector_StartEncounterWithoutObjective() {
 	return ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective;
 }
 
+uintptr_t Finder::FindABuildingFoundation_StreamInMyBuilding() {
+	if (ServerOffsets::ABuildingFoundation_StreamInMyBuilding)
+		return ServerOffsets::ABuildingFoundation_StreamInMyBuilding;
+	uintptr_t Addr = 0;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return ServerOffsets::ABuildingFoundation_StreamInMyBuilding;
+
+	auto sRef = Memcury::Scanner::FindStringRef(L"&ABuildingFoundation::OnLevelStreamedIn");
+	if (!sRef.IsValid()) {
+		sRef = Memcury::Scanner::FindStringRef(L"%s.%s trying to load invalid level %s", false, 0, Version::Fortnite_Version >= 17, false);
+	}
+	if (sRef.IsValid()) {
+		Addr = sRef.FindFunctionStart().Get();
+	}
+
+	if (Addr) {
+		ServerOffsets::ABuildingFoundation_StreamInMyBuilding = Addr - ImageBase;
+	}
+
+	bInitialized = true;
+	Log("ABuildingFoundation_StreamInMyBuilding found at: 0x" + std::format("{:X}", ServerOffsets::ABuildingFoundation_StreamInMyBuilding));
+	return ServerOffsets::ABuildingFoundation_StreamInMyBuilding;
+}
+
 void Finder::SetupCoreOffsets() {
 	ServerOffsets::FFrame__CurrentNativeFunction = Version::Fortnite_Version >= 20.20 ? 0x90 : 0x88;
 	ServerOffsets::FFrame__PropertyChainForCompiledIn = Version::Fortnite_Version >= 20.20 ? 0x88 : 0x80;
@@ -11632,6 +11654,7 @@ void Finder::SetupOffsets() {
 	FindAFortAIDirector_StartEncounterWithoutObjective();
 
 	FindABuildingFoundation_SelectAndSetupMyBuildingLevel();
+	FindABuildingFoundation_StreamInMyBuilding();
 
 	return;
 }

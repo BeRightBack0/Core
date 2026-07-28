@@ -1823,6 +1823,51 @@ inline bool IsReturnNullStub(uintptr_t Addr)
             && b[i + 5] == 0xFF && b[i + 6] == 0x64 && b[i + 7] == 0x24 && b[i + 8] == 0xF8);
 }
 
+// The bool sibling of IsReturnNullStub: a function stripped to `return false` compiles to
+// `xor al,al ; ret` (32 C0), which the eax-wide matcher above deliberately rejects. Kept separate so
+// ResolveStub keeps finding pointer-returning stubs only -- callers that want a stripped bool method
+// (e.g. UWorld::Listen in client builds) opt in through this.
+inline bool IsReturnFalseStub(uintptr_t Addr)
+{
+    static const uintptr_t TextStart = Memcury::PE::Section::GetSection(".text").GetSectionStart().Get();
+    static const uintptr_t TextEnd = Memcury::PE::Section::GetSection(".text").GetSectionEnd().Get();
+
+    auto IsReadableCode = [](uintptr_t A) -> bool
+    {
+        return A >= TextStart && (A + 0x10) <= TextEnd;
+    };
+
+    if (!IsReadableCode(Addr))
+        return false;
+
+    for (int hops = 0; hops < 4; hops++)
+    {
+        auto* j = reinterpret_cast<const uint8_t*>(Addr);
+        if (j[0] == 0xE9)
+            Addr = Addr + 5 + *reinterpret_cast<const int32_t*>(Addr + 1);
+        else if (j[0] == 0xEB)
+            Addr = Addr + 2 + *reinterpret_cast<const int8_t*>(Addr + 1);
+        else
+            break;
+
+        if (!IsReadableCode(Addr))
+            return false;
+    }
+
+    auto b = reinterpret_cast<const uint8_t*>(Addr);
+
+    // return false: xor al,al / mov al,0
+    int i;
+    if (b[0] == 0x32 && b[1] == 0xC0)         i = 2;
+    else if (b[0] == 0xB0 && b[1] == 0x00)    i = 2;
+    else                                      return false;
+
+    return b[i] == 0xC3
+        || b[i] == 0xC2
+        || (b[i] == 0x48 && b[i + 1] == 0x8D && b[i + 2] == 0x64 && b[i + 3] == 0x24 && b[i + 4] == 0x08
+            && b[i + 5] == 0xFF && b[i + 6] == 0x64 && b[i + 7] == 0x24 && b[i + 8] == 0xF8);
+}
+
 // First E8 CALL in [Start, End) whose resolved target == Target, or 0 if the range never calls it.
 // Use to locate a folded stub's call inside a function you already know calls it.
 inline uintptr_t FindCallRefInRange(uintptr_t Start, uintptr_t End, uintptr_t Target)

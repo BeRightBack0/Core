@@ -431,7 +431,7 @@ namespace ServerOffsets {
 	inline uintptr_t ULevelStreamingDynamic_LoadLevelInstanceBySoftObjectPtr = 0;
 
 	inline uintptr_t ABuildingFoundation_SelectAndSetupMyBuildingLevel = 0;
-
+	inline uintptr_t ABuildingFoundation_StreamInMyBuilding = 0;
 
 	inline uintptr_t UFortKismetLibrary_CanPlaceBuildableClassInStructuralGrid = 0;
 	inline uintptr_t UFortKismetLibrary_GetWeaponStatsRow = 0;
