@@ -255,20 +255,29 @@ uint8 AFortGameModeAthena::PickTeam(AFortGameModeAthena* This, uint8 PreferredTe
 		return PickTeamOG(This, PreferredTeam, ControllerToPickFor);
 	}
 
-	/*for (int32 i = 0; i < GameState->Teams.Num(); i++) {
-		AFortTeamInfo* TeamInfo = GameState->Teams[i];
-		if (!TeamInfo) {
-			continue;
-		}
-		
-		Log("AFortGameModeAthena::PickTeam: Team " + TeamInfo->GetName().ToString());
-		Log("AFortGameModeAthena::PickTeam: Team " + std::to_string(TeamInfo->Team) + " has " + std::to_string(TeamInfo->TeamMembers.Num()) + " members.");
-	}*/
-
 	APlayerState* PlayerStateToIgnore = ControllerToPickFor ? ControllerToPickFor->PlayerState : nullptr;
+
+	// Normal modes (Solo/Duos/Squads, TeamSize <= 4) fill each team to
+	// capacity via first-fit. Large-team modes (50v50, 25v25, 5 teams of 20,
+	// etc.) have TeamSize > 4 and instead take the least-populated eligible
+	// team so the sides stay balanced. An explicit bIsLargeTeamGame flag,
+	// if the build sets one, also forces balancing.
+	bool bBalanceLargeTeams = GameState->TeamSize > 4;
+	if (GameState->_HasbIsLargeTeamGame() && GameState->bIsLargeTeamGame) {
+		bBalanceLargeTeams = true;
+	}
+
+	AFortTeamInfo* SelectedTeam = nullptr;
+	int32 SelectedTeamMemberCount = 0;
 
 	for (AFortTeamInfo* TeamInfo : GameState->Teams) {
 		if (!TeamInfo || TeamInfo->Team < 2) {
+			continue;
+		}
+
+		// Player teams begin at 2. Ignore leftover or reserved entries that
+		// are outside the number of teams configured by the playlist.
+		if (GameState->TeamCount > 0 && TeamInfo->Team >= GameState->TeamCount + 2) {
 			continue;
 		}
 
@@ -284,13 +293,29 @@ uint8 AFortGameModeAthena::PickTeam(AFortGameModeAthena* This, uint8 PreferredTe
 			}
 		}
 
-		if (TeamMemberCount < GameState->TeamSize) {
+		// TeamSize is a strict capacity. Using <= here would put two
+		// players on a solo team when TeamSize is one.
+		if (TeamMemberCount >= GameState->TeamSize) {
+			continue;
+		}
+
+		if (!bBalanceLargeTeams) {
 			Log("AFortGameModeAthena::PickTeam: Assigning player to team " + std::to_string(TeamInfo->Team) + " with " + std::to_string(TeamMemberCount) + " members.");
 			return TeamInfo->Team;
 		}
+
+		if (!SelectedTeam || TeamMemberCount < SelectedTeamMemberCount) {
+			SelectedTeam = TeamInfo;
+			SelectedTeamMemberCount = TeamMemberCount;
+		}
 	}
 
-	Log("AFortGameModeAthena::PickTeam: Failed to find a team!");
+	if (SelectedTeam) {
+		Log("AFortGameModeAthena::PickTeam: Assigning player to balanced team " + std::to_string(SelectedTeam->Team) + " with " + std::to_string(SelectedTeamMemberCount) + " members.");
+		return SelectedTeam->Team;
+	}
+
+	Log("AFortGameModeAthena::PickTeam: Failed to find an available team!");
 	return PickTeamOG(This, PreferredTeam, ControllerToPickFor);
 }
 
