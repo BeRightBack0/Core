@@ -118,6 +118,22 @@ void ABuildingFoundation::execEditorOnlyAddAdditionalWorld(ABuildingFoundation* 
 	Context->EditorOnlyAddAdditionalWorld(LevelPackageName);
 }
 
+void ABuildingFoundation::EditorOnlyClearAdditionalWorlds()
+{
+	if (!_HasAdditionalWorlds()) {
+		return;
+	}
+
+	AdditionalWorlds.Free();
+	Log("ABuildingFoundation::EditorOnlyClearAdditionalWorlds: Cleared AdditionalWorlds on " + GetName().ToString());
+}
+
+void ABuildingFoundation::execEditorOnlyClearAdditionalWorlds(ABuildingFoundation* Context, FFrame& Stack) {
+	Stack.IncrementCode();
+
+	Context->EditorOnlyClearAdditionalWorlds();
+}
+
 void ABuildingFoundation::SetupFoundations()
 {
 	std::vector<const char*> FoundationPaths;
