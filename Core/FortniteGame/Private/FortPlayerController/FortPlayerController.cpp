@@ -937,7 +937,7 @@ void AFortPlayerController::ServerSetInventoryStateValue(AFortPlayerController* 
 		return;
 	}
 
-	ItemEntry->StateValues.Add(StateValue);
+	ItemEntry->StateValues.Add(StateValue, FFortItemEntryStateValue::GetSize());
 	This->WorldInventory->Update(ItemEntry);
 }
 

@@ -229,7 +229,7 @@ bool ABuildingItemCollectorActor::Setup() {
 				CollectorUnitInfo.OutputItem = ItemEntry.ItemDefinition->Cast<UFortWorldItemDefinition>();
 			}
 
-			CollectorUnitInfo.OutputItemEntry.Add(ItemEntry);
+			CollectorUnitInfo.OutputItemEntry.Add(ItemEntry, FFortItemEntry::GetSize());
 		}
 	}
 

@@ -218,13 +218,13 @@ void UFortQuestManager::ProgressQuest(UFortQuestItem* QuestItem, FName Objective
 	NewCompletion.StatName = QuestItem->TemplateId; // idk if this is right tbh, i dont think it is
 	NewCompletion.Count = InCount;
 
-	PendingChanges.Add(NewCompletion);
+	PendingChanges.Add(NewCompletion, FFortQuestObjectiveCompletion::GetSize());
 
 	// idrk exactly how these work so if somebody could figure this out that would be fire
 	if (PlayerController && PlayerController->AthenaProfile) {
 		TArray<FFortQuestObjectiveCompletion> Advanced;
 
-		Advanced.Add(NewCompletion);
+		Advanced.Add(NewCompletion, FFortQuestObjectiveCompletion::GetSize());
 
 		FDedicatedServerUrlContext Context;
 		PlayerController->AthenaProfile->UpdateQuests(Advanced, &Context);

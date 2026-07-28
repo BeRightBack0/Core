@@ -68,7 +68,7 @@ void AFortInventory::InitializeExistingItem(UFortWorldItem* ExistingItem) {
 		return InitializeExistingItemInternal(this, ExistingItem);
 	}
 	else {
-		Inventory.ReplicatedEntries.Add(ExistingItem->ItemEntry);
+		Inventory.ReplicatedEntries.Add(ExistingItem->ItemEntry, FFortItemEntry::GetSize());
 		Inventory.ItemInstances.Add(ExistingItem);
 	}
 }
