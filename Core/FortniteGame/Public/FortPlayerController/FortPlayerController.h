@@ -137,6 +137,9 @@ public:
 
 	static void ServerPlaySprayItem(AFortPlayerController* This, UAthenaSprayItemDefinition* SprayAsset);
 
+	static inline void (*execSpawnToyInstanceOG)(AFortPlayerController* Context, FFrame& Stack, void* const Result);
+	static void execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, void* const Result);
+
 	static inline void (*GetPlayerViewPointOG)(AFortPlayerController* This, FVector& out_Location, FRotator& out_Rotation);
 	static void GetPlayerViewPoint(AFortPlayerController* This, FVector& out_Location, FRotator& out_Rotation);
 
@@ -274,6 +277,10 @@ public:
 			AFortPlayerController::StaticClass()->GetFunction("Function /Script/FortniteGame.FortPlayerController.ServerPlaySprayItem"),
 			ServerPlaySprayItem
 		);
+
+		// Toys (issue #86): spawn the toy actor when the toy ability calls SpawnToyInstance.
+		// No-ops safely on builds that do not have this function.
+		ExecHook("Function /Script/FortniteGame.FortPlayerController.SpawnToyInstance", execSpawnToyInstance, execSpawnToyInstanceOG);
 
 		MH_CreateHook((LPVOID)(ImageBase + Finder::FindAFortPlayerController_GetPlayerViewPoint()), GetPlayerViewPoint, (LPVOID*)&GetPlayerViewPointOG);
 

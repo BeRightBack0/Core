@@ -86,6 +86,13 @@ public:
 	DefineUnrealClass(UAthenaSprayItemDefinition);
 };
 
+class UAthenaToyItemDefinition : public UAthenaDanceItemDefinition {
+public:
+	DefineUnrealClass(UAthenaToyItemDefinition);
+	// Blueprint ability that plays the toy montage and calls SpawnToyInstance.
+	DefineUProperty(TSoftObjectPtr<UClass>, ToySpawnAbility);
+};
+
 class UFortEmoteItemDefinition : public UFortMontageItemDefinitionBase {
 public:
 	DefineUnrealClass(UAthenaDanceItemDefinition);

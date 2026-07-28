@@ -1025,6 +1025,16 @@ void AFortPlayerController::ServerPlayEmoteItem(AFortPlayerController* This, UFo
 			EmoteAbility = Ability->GetDefaultObj()->Cast<UFortGameplayAbility>();
 		}
 	}
+	else if (UAthenaToyItemDefinition* ToyItemDef = EmoteAsset->Cast<UAthenaToyItemDefinition>()) {
+		// Toys (golf ball, beach ball, etc.) are dance-family items but carry their
+		// own spawn ability. Falling through to GAB_Emote_Generic only plays the
+		// throw animation and never spawns the toy actor (issue #86), so activate
+		// the item's ToySpawnAbility instead.
+		UClass* ToyAbility = ToyItemDef->ToySpawnAbility.Get();
+		if (ToyAbility) {
+			EmoteAbility = ToyAbility->GetDefaultObj()->Cast<UFortGameplayAbility>();
+		}
+	}
 	else if (UAthenaDanceItemDefinition* DanceItemDef = EmoteAsset->Cast<UAthenaDanceItemDefinition>()) {
 		UClass* Ability = StaticLoadObject<UClass>("/Game/Abilities/Emotes/GAB_Emote_Generic.GAB_Emote_Generic_C");
 		if (Ability) {
@@ -1035,6 +1045,34 @@ void AFortPlayerController::ServerPlayEmoteItem(AFortPlayerController* This, UFo
 	if (EmoteAbility) {
 		FGameplayAbilitySpec* EmoteAbilitySpec = FGameplayAbilitySpec::ConstructAbilitySpec(EmoteAbility, 1, -1, EmoteAsset);
 		ASC->GiveAbilityAndActivateOnce(EmoteAbilitySpec, nullptr);
+	}
+}
+
+void AFortPlayerController::execSpawnToyInstance(AFortPlayerController* Context, FFrame& Stack, void* const Result) {
+	// The toy spawn ability calls SpawnToyInstance from its Blueprint graph on the
+	// server. The native implementation does not create the toy actor on a
+	// Core-hosted server, so read the params, spawn the toy ourselves and hand it
+	// back as the return value (issue #86).
+	UClass* ToyClass = nullptr;
+	FTransform SpawnTransform;
+
+	Stack.StepCompiledIn(&ToyClass);
+	Stack.StepCompiledIn(&SpawnTransform);
+
+	execSpawnToyInstanceOG(Context, Stack, Result);
+
+	if (!Context || !ToyClass) {
+		return;
+	}
+
+	UWorld* World = UWorld::GetWorld();
+	if (!World) {
+		return;
+	}
+
+	AActor* NewToy = World->SpawnActor(ToyClass, SpawnTransform, Context);
+	if (NewToy && Result) {
+		*(AActor**)Result = NewToy;
 	}
 }
 
