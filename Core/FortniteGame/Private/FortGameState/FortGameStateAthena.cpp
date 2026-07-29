@@ -237,10 +237,7 @@ void AFortGameStateAthena::LoadCurrentPlaylistData() {
 }
 
 void AFortGameStateAthena::InitializePlaylistDataPreDataLoad() {
-	if (Finder::FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad()) {
-		void (*Fn)(AFortGameStateAthena*) = decltype(Fn)(ImageBase + Finder::FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad());
-		return Fn(this);
-	}
+	
 }
 
 float AFortGameStateAthena::GetServerWorldTimeSeconds() {

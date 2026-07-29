@@ -1109,8 +1109,6 @@ public:
 
 	static uintptr_t FindAFortGameStateAthena_LoadCurrentPlaylistData();
 
-	static uintptr_t FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad();
-
 	static uintptr_t FindAFortAIDirector_StartEncounterWithoutObjective();
 
 	static uintptr_t FindABuildingFoundation_StreamInMyBuilding();

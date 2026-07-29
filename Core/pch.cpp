@@ -140,6 +140,12 @@ void HookEveryVTableIdx(UClass* Base, int Idx, void* Detour, void** OG, bool bSi
 		return;
 	}
 
+	if (Idx <= 0 || Idx >= 0x4000)
+	{
+		Log("HookEveryVTableIdx: refusing out of range index " + std::format("0x{:X}", Idx));
+		return;
+	}
+
 	bool OGSet = false;
 
 	for (int i = 0; i < FUObjectArray::Num(); i++) {

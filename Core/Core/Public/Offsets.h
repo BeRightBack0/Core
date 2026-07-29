@@ -412,7 +412,6 @@ namespace ServerOffsets {
 	inline uintptr_t AFortGameStateAthena_OnPlaylistDataLoadCompleted = 0;
 	inline uintptr_t AFortGameStateAthena_UpdatePlaylistDependentData = 0;
 	inline uintptr_t AFortGameStateAthena_LoadCurrentPlaylistData = 0;
-	inline uintptr_t AFortGameStateAthena_InitializePlaylistDataPreDataLoad = 0;
 
 	inline uintptr_t UFortPlaylistManager_InitializePlaylists = 0;
 

@@ -5947,12 +5947,14 @@ uintptr_t Finder::FindAFortPickup_GivePickupToVFT() {
 		for (int i = 0; i < 2048; i++)
 		{
 			auto Ptr = (uint8_t*)(BaseAddr + i);
-			if (*Ptr == 0x49 && *(Ptr + 1) == 0xFF) {
+			// `49 FF` also starts `call r9` and `call [r9+disp8]`, neither of which carries a disp32 - decode
+			// the ModRM rather than trusting the two opcode bytes.
+			if (IsCallRegDisp32(uintptr_t(Ptr))) {
 				int32_t Offset = *reinterpret_cast<int32_t*>(Ptr + 3);
 				Addr = static_cast<uintptr_t>(Offset) / 8;
 				break;
 			}
-			if (*Ptr == 0x48 && *(Ptr + 1) == 0xFF && *(Ptr + 2) == 0xA0) {
+			if (*Ptr == 0x48 && *(Ptr + 1) == 0xFF && *(Ptr + 2) == 0xA0) { // jmp qword [rax+disp32]
 				int32_t Offset = *reinterpret_cast<int32_t*>(Ptr + 3);
 				Addr = static_cast<uintptr_t>(Offset) / 8;
 				break;
@@ -5995,7 +5997,7 @@ uintptr_t Finder::FindABuildingContainer_SpawnLootVFT() {
 
 		for (int i = 0; i < 512 && (StringAddr - i) >= FuncStart; i++)
 		{
-			if (*(uint8*)(StringAddr - i + 0) == 0x41 && *(uint8*)(StringAddr - i + 1) == 0xff)
+			if (IsCallRegDisp32(StringAddr - i))
 			{
 				ServerOffsets::ABuildingContainer_SpawnLootVFT = *(uint32_t*)(StringAddr - i + 3) / 8;
 				break;
@@ -6010,12 +6012,19 @@ uintptr_t Finder::FindABuildingContainer_SpawnLootVFT() {
 
 		for (int i = 0; i < 512; i++)
 		{
-			if (*(uint8*)(ServerOnAttemptInteractAddr + i) == 0x41 && *(uint8*)(ServerOnAttemptInteractAddr + i + 1) == 0xff)
+			if (IsCallRegDisp32(ServerOnAttemptInteractAddr + i))
 			{
 				ServerOffsets::ABuildingContainer_SpawnLootVFT = *(uint32_t*)(ServerOnAttemptInteractAddr + i + 3) / 8;
 				break;
 			}
 		}
+	}
+
+	// A vtable index this large means the scan matched a `41 FF` that wasn't the call we wanted; passing it
+	// on writes hundreds of MB past the vtable.
+	if (ServerOffsets::ABuildingContainer_SpawnLootVFT >= 0x4000) {
+		Log("ABuildingContainer_SpawnLootVFT: decoded a nonsense index, discarding!");
+		ServerOffsets::ABuildingContainer_SpawnLootVFT = 0;
 	}
 
 	Log("ABuildingContainer_SpawnLootVFT found at: 0x" + std::format("{:X}", ServerOffsets::ABuildingContainer_SpawnLootVFT));
@@ -11171,25 +11180,6 @@ uintptr_t Finder::FindAFortGameStateAthena_LoadCurrentPlaylistData() {
 	return ServerOffsets::AFortGameStateAthena_LoadCurrentPlaylistData;
 }
 
-uintptr_t Finder::FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad() {
-	if (ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad)
-		return ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad;
-	uintptr_t Addr = 0;
-	static bool bInitialized = false;
-	if (bInitialized)
-		return ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad;
-
-	Addr = Memcury::Scanner::FindPattern("40 53 48 83 EC ? 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 ? 80 BB").Get();
-
-	if (Addr) {
-		ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad = Addr - ImageBase;
-	}
-
-	bInitialized = true;
-	Log("AFortGameStateAthena_InitializePlaylistDataPreDataLoad found at: 0x" + std::format("{:X}", ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad));
-	return ServerOffsets::AFortGameStateAthena_InitializePlaylistDataPreDataLoad;
-}
-
 uintptr_t Finder::FindAFortAIDirector_StartEncounterWithoutObjective() {
 	if (ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective)
 		return ServerOffsets::AFortAIDirector_StartEncounterWithoutObjective;
@@ -11650,7 +11640,6 @@ void Finder::SetupOffsets() {
 	FindAGameMode_HandleMatchHasStartedVFT();
 
 	FindAFortGameStateAthena_LoadCurrentPlaylistData();
-	FindAFortGameStateAthena_InitializePlaylistDataPreDataLoad();
 
 	FindUActorComponent_RegisterComponentWithWorld();
 
